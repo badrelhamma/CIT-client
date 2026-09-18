@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Anton", "Arial Narrow", system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", "Cascadia Code", "Consolas", Menlo,
+    monospace;
+
+  /* Accent — le bleu des réseaux sociaux */
+  --color-adm-50: #e8f4ff;
+  --color-adm-100: #ccebff;
+  --color-adm-200: #9cd7ff;
+  --color-adm-300: #5cb8ff;
+  --color-adm-500: #2ea3f8;
+  --color-adm-600: #0095f6;
+  --color-adm-700: #0078d4;
+  --color-adm-800: #0060ad;
+  --color-adm-900: #05426e;
+  --color-adm-950: #032c4e;
+
+  /* Marquage réservé au panneau kilométrique */
+  --color-marker: #ffd200;
+
+  /* Signalisation événement — jamais décoratif */
+  --color-yellow: #ffc400;
+  --color-orange: #ff7a1a;
+  --color-red: #e11d2e;
+  --color-red-deep: #c8102e;
+
+  /* Validation */
+  --color-ok: #1e8e4e;
+  --color-wa: #1faa59;
+
+  /* Surface : blanc, gris clair, filet fin */
+  --color-ink: #262626;
+  --color-ink-soft: #5f6368;
+  --color-ink-faint: #8e8e8e;
+  --color-paper: #fafafa;
+  --color-card: #ffffff;
+  --color-line: #dbdbdb;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Bandes défilantes horizontales, sans barre visible (fil d'axes) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+::selection {
+  background-color: var(--color-adm-100);
+  color: var(--color-adm-900);
+}
+
+/* Focus visible global — accessibilité */
+:focus-visible {
+  outline: 2px solid var(--color-adm-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
