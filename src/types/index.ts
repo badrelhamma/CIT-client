@@ -147,6 +147,14 @@ export interface BilanData {
 }
 
 /** Bilan / mise à jour rattaché à un événement (embedé dans le parent). */
+export interface HistoryComment {
+  id: string;
+  text: string;
+  authorId: string;
+  authorName: string;
+  at: string;
+}
+
 export interface HistoryReply {
   refCode: string;
   at: string;
@@ -178,11 +186,61 @@ export interface HistoryEvent {
   resolved: boolean;
   bilan?: BilanData | null;
   replies?: HistoryReply[];
+  comments?: HistoryComment[];
+}
+
+export type Role = "Manager principal" | "Manager" | "Directeur";
+
+export type PermissionKey =
+  | "page:historique"
+  | "page:evenement"
+  | "page:repertoire"
+  | "page:tmd"
+  | "page:criticite"
+  | "page:reseau"
+  | "page:compte-rendu"
+  | "history:comment"
+  | "history:edit"
+  | "history:delete"
+  | "tmd:write"
+  | "criticite:write"
+  | "repertoire:write";
+
+export interface PermissionDefinition {
+  key: PermissionKey;
+  label: string;
+  group: string;
+}
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  identifier: string;
+  email: string;
+  role: Role;
+  permissions: PermissionKey[];
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AdminPermissionCatalog {
+  roles: Role[];
+  permissions: PermissionDefinition[];
+}
+
+export interface AdminUserPayload {
+  name?: string;
+  identifier?: string;
+  email?: string;
+  password?: string;
+  role?: Role;
+  permissions?: PermissionKey[];
+  active?: boolean;
 }
 
 export type ScreenId =
-  | "recherche"
-  | "bilan"
+  | "evenement"
   | "historique"
   | "historiqueTous"
   | "historiqueEncours"
@@ -193,7 +251,8 @@ export type ScreenId =
   | "criticite"
   | "compteRendu"
   | "listeCr"
-  | "ajouterCr";
+  | "ajouterCr"
+  | "administration";
 
 export interface HealthResponse {
   status: "ok";

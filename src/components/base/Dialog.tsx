@@ -8,8 +8,8 @@ interface DialogProps {
   maxWidth?: string;
 }
 
-/** Fenêtre d'alerte façon Instagram : overlay sombre, panneau central
- *  défilable, fermeture par croix, Échap ou clic sur le fond. */
+/** Feuille modale façon iOS : overlay assombri, panneau central défilable,
+ *  fermeture par croix, Échap ou clic sur le fond. */
 export function Dialog({
   title,
   onClose,
@@ -39,12 +39,12 @@ export function Dialog({
         type="button"
         aria-label="Fermer la fenêtre"
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-black/50 backdrop-blur-[2px]"
+        className="absolute inset-0 cursor-default bg-[var(--overlay)] backdrop-blur-[6px]"
       />
       <div
-        className={`relative w-full ${maxWidth} max-h-[85dvh] overflow-y-auto rounded-2xl bg-card shadow-2xl`}
+        className={`relative w-full ${maxWidth} max-h-[85dvh] overflow-y-auto rounded-[var(--radius-card)] border border-line-soft bg-card shadow-2xl`}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-line-soft px-5 py-3">
           <h3 className="font-display text-lg text-ink">{title}</h3>
           <button
             type="button"

@@ -1,4 +1,5 @@
-import type { ScreenId } from "@/types";
+import { canAccessScreen } from "@/services/access";
+import type { AuthUser, ScreenId } from "@/types";
 
 export interface NavItem {
   id: ScreenId;
@@ -19,8 +20,7 @@ export const NAV_ITEMS: Omit<NavItem, "badge">[] = [
       { id: "historiqueResolus", label: "Résolus" },
     ],
   },
-  { id: "recherche", label: "Recherche", icon: <SearchIcon /> },
-  { id: "bilan", label: "Bilan", icon: <BilanIcon /> },
+  { id: "evenement", label: "Événement", icon: <EventIcon /> },
   { id: "repertoire", label: "Répertoire", icon: <DirectoryIcon /> },
   { id: "tmd", label: "TMD", icon: <TmdIcon /> },
   { id: "criticite", label: "Criticité", icon: <CriticiteIcon /> },
@@ -34,14 +34,36 @@ export const NAV_ITEMS: Omit<NavItem, "badge">[] = [
       { id: "ajouterCr", label: "Ajouter CR" },
     ],
   },
+  {
+    id: "administration",
+    label: "Administration",
+    icon: <AdminIcon />,
+  },
 ];
+
+export function filterNavForUser(
+  user: AuthUser | null,
+): Omit<NavItem, "badge">[] {
+  return NAV_ITEMS.filter((item) => canAccessScreen(user, item.id))
+    .map((item) => ({
+      ...item,
+      children: item.children?.filter((child) =>
+        canAccessScreen(user, child.id),
+      ),
+    }))
+    .filter((item) => !item.children || item.children.length > 0);
+}
+
+export function firstAccessibleScreen(user: AuthUser | null): ScreenId | null {
+  return filterNavForUser(user)[0]?.id ?? null;
+}
 
 export function navGroupActive(item: NavItem, active: ScreenId): boolean {
   if (item.id === active) return true;
   return (item.children ?? []).some((child) => child.id === active);
 }
 
-function SearchIcon() {
+function EventIcon() {
   return (
     <svg
       aria-hidden="true"
@@ -53,26 +75,8 @@ function SearchIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  );
-}
-
-function BilanIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="size-5"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9 11l3 3L22 4" />
-      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+      <path d="M12 22s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z" />
+      <circle cx="12" cy="11" r="2.5" />
     </svg>
   );
 }
@@ -171,6 +175,24 @@ function CriticiteIcon() {
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
       <line x1="12" y1="9" x2="12" y2="13" />
       <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+}
+
+function AdminIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2 4 6v6c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V6Z" />
+      <path d="M9 12l2 2 4-4" />
     </svg>
   );
 }

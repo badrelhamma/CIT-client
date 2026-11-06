@@ -1,43 +1,89 @@
 @import "tailwindcss";
+@import "../../../theme/instagram/instagram.css";
+@import "../../../theme/instagram/tailwind.css";
+
+:root {
+  --tint: var(--ig-pink);
+  --tint-deep: var(--ig-magenta);
+  --tint-fill: color-mix(in srgb, var(--ig-pink) 14%, transparent);
+  --tint-fill-strong: color-mix(in srgb, var(--ig-pink) 22%, transparent);
+  --on-tint: #ffffff;
+
+  --adm-50: color-mix(in srgb, var(--ig-pink) 10%, var(--ig-surface));
+  --adm-100: color-mix(in srgb, var(--ig-pink) 18%, var(--ig-surface));
+  --adm-200: color-mix(in srgb, var(--ig-pink) 28%, var(--ig-surface));
+  --adm-300: color-mix(in srgb, var(--ig-pink) 40%, var(--ig-surface));
+  --adm-400: color-mix(in srgb, var(--ig-pink) 58%, var(--ig-surface));
+  --adm-500: var(--ig-magenta);
+  --adm-600: var(--ig-pink);
+  --adm-700: var(--ig-magenta);
+  --adm-800: var(--ig-pink);
+  --adm-900: var(--ig-text);
+  --adm-950: var(--ig-text);
+
+  --marker: var(--ig-amber);
+  --yellow: var(--ig-amber);
+  --orange: var(--ig-orange);
+  --red: var(--ig-danger);
+  --red-deep: var(--ig-danger);
+  --ok: var(--ig-success);
+  --wa: var(--ig-success);
+
+  --paper: var(--ig-bg);
+  --card: var(--ig-surface);
+  --card-2: var(--ig-surface-2);
+  --paper-2: var(--ig-surface-2);
+  --ink: var(--ig-text);
+  --ink-soft: var(--ig-text-2);
+  --ink-faint: var(--ig-muted);
+  --line: var(--ig-border);
+  --line-soft: var(--ig-border);
+  --overlay: rgb(0 0 0 / 62%);
+}
 
 @theme {
-  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-display: "Anton", "Arial Narrow", system-ui, sans-serif;
-  --font-mono: "SFMono-Regular", "Cascadia Code", "Consolas", Menlo,
-    monospace;
+  --font-sans: var(--ig-font-sans);
+  --font-display: var(--ig-font-sans);
+  --font-mono: var(--ig-font-mono);
 
-  /* Accent — le bleu des réseaux sociaux */
-  --color-adm-50: #e8f4ff;
-  --color-adm-100: #ccebff;
-  --color-adm-200: #9cd7ff;
-  --color-adm-300: #5cb8ff;
-  --color-adm-500: #2ea3f8;
-  --color-adm-600: #0095f6;
-  --color-adm-700: #0078d4;
-  --color-adm-800: #0060ad;
-  --color-adm-900: #05426e;
-  --color-adm-950: #032c4e;
+  --color-adm-50: var(--adm-50);
+  --color-adm-100: var(--adm-100);
+  --color-adm-200: var(--adm-200);
+  --color-adm-300: var(--adm-300);
+  --color-adm-400: var(--adm-400);
+  --color-adm-500: var(--adm-500);
+  --color-adm-600: var(--adm-600);
+  --color-adm-700: var(--adm-700);
+  --color-adm-800: var(--adm-800);
+  --color-adm-900: var(--adm-900);
+  --color-adm-950: var(--adm-950);
+  --color-tint: var(--tint);
+  --color-tint-deep: var(--tint-deep);
 
-  /* Marquage réservé au panneau kilométrique */
-  --color-marker: #ffd200;
+  --color-marker: var(--marker);
+  --color-yellow: var(--yellow);
+  --color-orange: var(--orange);
+  --color-red: var(--red);
+  --color-red-deep: var(--red-deep);
+  --color-ok: var(--ok);
+  --color-wa: var(--wa);
 
-  /* Signalisation événement — jamais décoratif */
-  --color-yellow: #ffc400;
-  --color-orange: #ff7a1a;
-  --color-red: #e11d2e;
-  --color-red-deep: #c8102e;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
 
-  /* Validation */
-  --color-ok: #1e8e4e;
-  --color-wa: #1faa59;
-
-  /* Surface : blanc, gris clair, filet fin */
-  --color-ink: #262626;
-  --color-ink-soft: #5f6368;
-  --color-ink-faint: #8e8e8e;
-  --color-paper: #fafafa;
-  --color-card: #ffffff;
-  --color-line: #dbdbdb;
+  --radius-card: var(--ig-radius-md);
+  --radius-field: var(--ig-radius-md);
+  --radius-capsule: var(--ig-radius-pill);
+  --radius-lg: var(--ig-radius-md);
+  --radius-xl: var(--ig-radius-md);
+  --radius-2xl: var(--ig-radius-md);
 }
 
 html,
@@ -48,16 +94,66 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  font-size: 16px;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--ig-font-sans);
+  font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Bandes défilantes horizontales, sans barre visible (fil d'axes) */
+.glass-regular,
+.glass-dock {
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.glass-bar {
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.material-thin,
+.material-regular {
+  background: var(--card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.material-thick {
+  background: var(--card-2);
+}
+
+.label-primary { color: var(--ink); }
+.label-secondary { color: var(--ink-soft); }
+.label-tertiary { color: var(--ink-faint); }
+.hairline { border-color: var(--line); }
+.hairline-soft { border-color: var(--line-soft); }
+.tint-fill { background: var(--tint-fill); color: var(--tint); }
+.tint-fill-strong { background: var(--tint-fill-strong); color: var(--tint); }
+
+.separator {
+  border-color: var(--line);
+}
+
+:focus-visible {
+  outline: 2px solid var(--tint);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background-color: var(--tint-fill-strong);
+  color: var(--ink);
+}
+
 .no-scrollbar {
   scrollbar-width: none;
 }
@@ -65,14 +161,29 @@ body {
   display: none;
 }
 
-::selection {
-  background-color: var(--color-adm-100);
-  color: var(--color-adm-900);
+@media (prefers-contrast: more) {
+  :root {
+    --line: var(--ig-border-strong);
+    --line-soft: var(--ig-border-strong);
+    --ink-soft: var(--ig-text);
+  }
 }
 
-/* Focus visible global — accessibilité */
-:focus-visible {
-  outline: 2px solid var(--color-adm-600);
-  outline-offset: 2px;
-  border-radius: 4px;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.pressable {
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+.pressable:active {
+  transform: scale(0.97);
+  opacity: 0.85;
 }

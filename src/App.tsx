@@ -1,23 +1,24 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { LoadingState } from "@/components/base/LoadingState";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { EventProvider } from "@/contexts/EventContext";
 import { ToastProvider } from "@/contexts/ToastContext";
-import { BilanScreen } from "@/screens/BilanScreen";
+import { AdminScreen } from "@/screens/AdminScreen";
 import { CompteRenduScreen } from "@/screens/CompteRenduScreen";
 import { CriticiteScreen } from "@/screens/CriticiteScreen";
+import { EventScreen } from "@/screens/EventScreen";
 import { HistoryScreen } from "@/screens/HistoryScreen";
+import { LoginScreen } from "@/screens/LoginScreen";
 import { NetworkScreen } from "@/screens/NetworkScreen";
 import { RepertoireScreen } from "@/screens/RepertoireScreen";
-import { SearchScreen } from "@/screens/SearchScreen";
 import { TmdScreen } from "@/screens/TmdScreen";
 import type { ScreenId } from "@/types";
 
-function renderScreen(screen: ScreenId, navigate: (s: ScreenId) => void) {
+function renderScreen(screen: ScreenId) {
   switch (screen) {
-    case "recherche":
-      return <SearchScreen onNavigate={navigate} />;
-    case "bilan":
-      return <BilanScreen />;
+    case "evenement":
+      return <EventScreen />;
     case "historique":
     case "historiqueTous":
       return <HistoryScreen key="tous" initialTab="tous" />;
@@ -38,17 +39,39 @@ function renderScreen(screen: ScreenId, navigate: (s: ScreenId) => void) {
       return <CompteRenduScreen key="liste" initialView="liste" />;
     case "ajouterCr":
       return <CompteRenduScreen key="ajouter" initialView="ajouter" />;
+    case "administration":
+      return <AdminScreen />;
   }
+}
+
+function AuthGate() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-paper">
+        <LoadingState label="Vérification de la session…" />
+      </div>
+    );
+  }
+
+  if (!user) return <LoginScreen />;
+
+  return (
+    <DataProvider>
+      <EventProvider>
+        <AppShell>{(screen) => renderScreen(screen)}</AppShell>
+      </EventProvider>
+    </DataProvider>
+  );
 }
 
 export default function App() {
   return (
     <ToastProvider>
-      <DataProvider>
-        <EventProvider>
-          <AppShell>{(_screen, navigate) => renderScreen(_screen, navigate)}</AppShell>
-        </EventProvider>
-      </DataProvider>
+      <AuthProvider>
+        <AuthGate />
+      </AuthProvider>
     </ToastProvider>
   );
 }

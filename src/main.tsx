@@ -40,7 +40,7 @@ class ErrorBoundary extends Component<
           <p className="font-display text-4xl text-adm-900">
             Une erreur est survenue
           </p>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-red-800">
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-red-deep">
             {String(this.state.error.message || this.state.error)}
           </p>
           <button

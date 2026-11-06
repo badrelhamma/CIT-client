@@ -9,6 +9,9 @@ import { Button } from "@/components/base/Button";
 import { Card } from "@/components/base/Card";
 import { Dialog } from "@/components/base/Dialog";
 import { Field } from "@/components/base/Field";
+import { useAuth } from "@/contexts/AuthContext";
+import { canAddCompteRendu } from "@/services/access";
+import { filterCompteRendusForUser } from "@/services/compteRenduOwnership";
 import { inputCls, selectCls } from "./repertoireUi";
 import {
   exportCompteRenduPdf,
@@ -74,6 +77,9 @@ interface CrState {
 interface SavedCr {
   id: string;
   savedAt: string;
+  ownerId?: string;
+  ownerName?: string;
+  ownerIdentifier?: string;
   state: CrState;
 }
 
@@ -135,124 +141,6 @@ function freshState(): CrState {
   };
 }
 
-/* Données de démonstration : mois 08 et 09 avec les 3 postes, chaque
-   entrant est un manager et chaque compte rendu est signé. */
-interface SampleConfig {
-  date: string;
-  poste: string;
-  sortant: string;
-  entrant: string;
-  trafic: string;
-  meteo: string;
-}
-
-const SAMPLE_TRAFIC = ["Fluide", "dense", "Ralenté", "perturbé"];
-const SAMPLE_METEO = [
-  "Ciel dégagé",
-  "Passages nuageux",
-  "Pluie faible",
-  "Brouillard matinal",
-  "Vent fort",
-  "Canicule",
-];
-
-const SAMPLE_MANAGERS = [
-  "HICHAM.ELHAMMAR",
-  "AKBABI.KAMAL",
-  "BADR.ELHAMMA",
-  "ELHANI.ELFATMI",
-  "SAHLI.REDA",
-  "BORKI.AALAAEDDINE",
-  "ELWARDI.ELMEHDI",
-  "BOUIDIR.SIFEDDINE",
-  "BELGHITI Aziz",
-];
-
-/* Génère 40 configurations : dates réparties sur août et septembre 2026,
-   postes en rotation (3 postes), managers sortants/entrants différents. */
-function buildSampleConfigs(count: number): SampleConfig[] {
-  const configs: SampleConfig[] = [];
-  let dayOfMonth = 1;
-  let month = 8;
-  let lastDay = 31;
-  for (let i = 0; i < count; i++) {
-    const poste = POSTES[i % POSTES.length];
-    const sortant = SAMPLE_MANAGERS[i % SAMPLE_MANAGERS.length];
-    const entrant =
-      SAMPLE_MANAGERS[(i + 1 + Math.floor(i / SAMPLE_MANAGERS.length)) % SAMPLE_MANAGERS.length];
-    configs.push({
-      date: `2026-${String(month).padStart(2, "0")}-${String(dayOfMonth).padStart(2, "0")}`,
-      poste,
-      sortant,
-      entrant,
-      trafic: SAMPLE_TRAFIC[i % SAMPLE_TRAFIC.length],
-      meteo: SAMPLE_METEO[i % SAMPLE_METEO.length],
-    });
-    dayOfMonth += i % 3 === 0 ? 2 : 1;
-    if (dayOfMonth > lastDay) {
-      dayOfMonth = 1;
-      month = 9;
-      lastDay = 30;
-    }
-  }
-  return configs;
-}
-
-function posteHours(poste: string): [string, string] {
-  if (poste === "Matin 08h-16h") return ["08:00", "16:00"];
-  if (poste === "Après-midi 16-00") return ["16:00", "00:00"];
-  return ["00:00", "08:00"];
-}
-
-function buildSampleCr(config: SampleConfig, index: number): SavedCr {
-  const s = freshState();
-  const [hd, hf] = posteHours(config.poste);
-  s.date = config.date;
-  s.poste = config.poste;
-  s.heureDebut = hd;
-  s.heureFin = hf;
-  s.sortant = config.sortant;
-  s.entrant = config.entrant;
-  s.trafic = config.trafic;
-  s.meteo = config.meteo;
-  s.accidents = String(index % 3);
-  s.bouchons = String(index % 2 === 0 ? index + 1 : index);
-  s.incendies = "0";
-  s.autres = index % 5 === 4 ? "Véhicule en panne sur bretelle" : "0";
-  s.details =
-    index % 5 === 4
-      ? "Véhicule en panne neutralisé sur bretelle de sortie, signalisation en place."
-      : "Circulation normale, aucun événement majeur durant le poste.";
-  s.pmv = String(index % 2);
-  s.tickets = String(index % 3);
-  s.valides = String(index % 3);
-  s.devalides = String(index % 2 === 0 ? 0 : 1);
-  s.reporting = "Reporting transmis au PC Centrale";
-  s.sensibles =
-    index % 2 === 0
-      ? "Surveiller la zone chantier A1 PK 12"
-      : "Point sensible : bretelle A3 PK 34 en heure de pointe";
-  s.consignes = "Veiller à la mise à jour des PMV et tickets.";
-  s.difficultes = "Aucune difficulté particulière.";
-  s.signature = config.entrant;
-  s.equipements = s.equipements.map((e, i) => ({
-    label: e.label,
-    statut: i === 5 ? "hors service" : "Normale",
-    obs: i === 5 ? "À relancer auprès de la maintenance" : "",
-  }));
-  return {
-    id: makeId(),
-    savedAt: new Date(`${config.date}T12:00:00.000Z`).toISOString(),
-    state: s,
-  };
-}
-
-function buildSampleList(): SavedCr[] {
-  return buildSampleConfigs(40).map((config, index) =>
-    buildSampleCr(config, index),
-  );
-}
-
 function buildText(s: CrState): string {
   const L: string[] = [];
   L.push("COMPTE RENDU DE POSTE DES MANAGERS — CIT");
@@ -308,6 +196,8 @@ const CR_EMPTY_FILTERS = {
 export function CompteRenduScreen({
   initialView = "liste",
 }: CompteRenduScreenProps) {
+  const { user, isPrincipal } = useAuth();
+  const canAdd = canAddCompteRendu(user);
   const [state, setState] = useState<CrState>(freshState);
   const [savedList, setSavedList] = useState<SavedCr[]>(loadList);
   const [msg, setMsg] = useState<string | null>(null);
@@ -316,6 +206,14 @@ export function CompteRenduScreen({
   const [filters, setFilters] = useState(CR_EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const preview = useMemo(() => buildText(state), [state]);
+  const visibleList = useMemo(
+    () => filterCompteRendusForUser(savedList, user),
+    [savedList, user],
+  );
+
+  useEffect(() => {
+    if (!canAdd && view === "ajouter") setView("liste");
+  }, [canAdd, view]);
 
   useEffect(() => {
     if (!msg) return;
@@ -326,7 +224,7 @@ export function CompteRenduScreen({
   /* Retour à la première page quand la liste ou les filtres changent. */
   useEffect(() => {
     setPage(1);
-  }, [savedList.length, filters.q, filters.dateFrom, filters.dateTo, filters.poste, filters.signature]);
+  }, [visibleList.length, filters.q, filters.dateFrom, filters.dateTo, filters.poste, filters.signature]);
 
   const filtersDirty =
     filters.q !== "" || filters.dateFrom !== "" || filters.dateTo !== "" ||
@@ -334,7 +232,7 @@ export function CompteRenduScreen({
 
   const filteredList = useMemo(() => {
     const q = filters.q.toLowerCase();
-    return savedList.filter((entry) => {
+    return visibleList.filter((entry) => {
       const s = entry.state;
       if (filters.dateFrom && s.date < filters.dateFrom) return false;
       if (filters.dateTo && s.date > filters.dateTo) return false;
@@ -345,30 +243,15 @@ export function CompteRenduScreen({
           s.date, s.poste, s.sortant, s.entrant, s.trafic, s.meteo,
           s.signature, s.details, s.consignes, s.sensibles,
           s.accidents, s.bouchons, s.incendies, s.pmv, s.tickets,
+          entry.ownerName, entry.ownerIdentifier,
         ].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [savedList, filters]);
+  }, [visibleList, filters]);
 
-  /* Remplit la liste au premier chargement si aucune donnée n'existe. */
-  useEffect(() => {
-    const raw = localStorage.getItem(LIST_KEY);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as unknown;
-        if (Array.isArray(parsed) && parsed.length > 0) return;
-      } catch {
-        /* continue vers le remplissage */
-      }
-    }
-    const samples = buildSampleList();
-    persistList(samples);
-    setSavedList(samples);
-    setMsg("Données d'exemple chargées : 40 comptes rendus signés (mois 08 et 09).");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Aucun remplissage automatique : la liste reflète uniquement les comptes rendus réellement enregistrés.
 
   function patch(p: Partial<CrState>) {
     setState((s) => ({ ...s, ...p }));
@@ -386,11 +269,22 @@ export function CompteRenduScreen({
   function addToSaved() {
     setSavedList((prev) => {
       const latest = prev[0];
-      if (latest && JSON.stringify(latest.state) === JSON.stringify(state)) {
+      if (
+        latest &&
+        latest.ownerId === user?.id &&
+        JSON.stringify(latest.state) === JSON.stringify(state)
+      ) {
         return prev;
       }
       const next: SavedCr[] = [
-        { id: makeId(), savedAt: new Date().toISOString(), state },
+        {
+          id: makeId(),
+          savedAt: new Date().toISOString(),
+          ownerId: user?.id,
+          ownerName: user?.name,
+          ownerIdentifier: user?.identifier,
+          state,
+        },
         ...prev,
       ];
       persistList(next);
@@ -416,6 +310,7 @@ export function CompteRenduScreen({
   }
 
   function reprendre(saved: CrState) {
+    if (!canAdd) return;
     setState(saved);
     setView("ajouter");
     setMsg("Compte rendu chargé dans le formulaire.");
@@ -789,9 +684,9 @@ export function CompteRenduScreen({
               <p className="mt-1 text-sm text-ink-soft">
                 {filteredList.length} compte{filteredList.length > 1 ? "s" : ""} rendu
                 {filteredList.length > 1 ? "s" : ""}
-                {filteredList.length !== savedList.length
-                  ? ` sur ${savedList.length} enregistré${savedList.length > 1 ? "s" : ""}`
-                  : ` enregistré${savedList.length > 1 ? "s" : ""}`}
+                {filteredList.length !== visibleList.length
+                  ? ` sur ${visibleList.length} enregistré${visibleList.length > 1 ? "s" : ""}`
+                  : ` enregistré${visibleList.length > 1 ? "s" : ""}`}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -823,22 +718,24 @@ export function CompteRenduScreen({
                   </svg>
                 </button>
               </div>
-              <Button size="sm" onClick={() => setView("ajouter")}>
-              <svg
-                aria-hidden="true"
-                className="size-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 5v14" />
-                <path d="M5 12h14" />
-              </svg>
-              Ajouter CR
-            </Button>
+              {canAdd && (
+                <Button size="sm" onClick={() => setView("ajouter")}>
+                  <svg
+                    aria-hidden="true"
+                    className="size-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 5v14" />
+                    <path d="M5 12h14" />
+                  </svg>
+                  Ajouter CR
+                </Button>
+              )}
             </div>
           </div>
 
@@ -956,10 +853,20 @@ export function CompteRenduScreen({
                     <p className="text-xs leading-relaxed text-ink-soft">
                       Signé par : {s.signature || "—"}
                     </p>
+                    {isPrincipal && (
+                      <p className="text-xs leading-relaxed text-ink-soft">
+                        Compte : {entry.ownerName || "Non renseigné"}
+                        {entry.ownerIdentifier
+                          ? ` (${entry.ownerIdentifier})`
+                          : ""}
+                      </p>
+                    )}
                     <div className="mt-2.5 flex flex-wrap gap-2">
-                      <Button size="sm" onClick={() => reprendre(s)}>
-                        Reprendre
-                      </Button>
+                      {canAdd && (
+                        <Button size="sm" onClick={() => reprendre(s)}>
+                          Reprendre
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="secondary"

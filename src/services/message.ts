@@ -10,7 +10,8 @@ export interface AdmMessageInput {
   sources: string[];
   statusLabel: string;
   /** Sections bilan ajoutées au message « Recherche » quand l'événement est
-   *  confirmé (statut préfixé par « ⏳ ») et non signalé par usager 5050. */
+   *  confirmé et non signalé par usager 5050. Le statut est toujours préfixé
+   *  par « ⏳ ». */
   bilan?: BilanSuffix | null;
 }
 
@@ -23,7 +24,7 @@ export function buildAdmMessage(input: AdmMessageInput): string {
     `📍 *${input.highwayId} / PK ${formatPkKm(input.pk)} / ${input.location} ➡️ ${input.destination}*`,
   ];
   if (sourceLine) lines.push(sourceLine);
-  lines.push(input.bilan ? `⏳ *${input.statusLabel}*` : `*${input.statusLabel}*`);
+  lines.push(`⏳ *${input.statusLabel}*`);
   if (input.bilan) lines.push(...buildBilanSuffixLines(input.bilan));
   return lines.join("\n");
 }

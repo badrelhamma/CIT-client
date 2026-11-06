@@ -9,7 +9,9 @@ import { MessageText } from "@/components/base/MessageText";
 import { PkSign } from "@/components/base/PkSign";
 import { PkRangeSlider } from "@/components/base/PkRangeSlider";
 import { ReplyDialog } from "@/components/history/ReplyDialog";
+import { CommentsPanel } from "@/components/history/CommentsPanel";
 import { Dialog } from "@/components/base/Dialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
 import { useToast } from "@/contexts/ToastContext";
 import { api } from "@/services/api";
@@ -146,6 +148,8 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
     errorHistory,
     refreshHistory,
   } = useData();
+  const { hasPermission } = useAuth();
+  const canEditHistory = hasPermission("history:edit");
   const { notify } = useToast();
 
   const feedTab = initialTab;
@@ -552,7 +556,10 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
                       sourceLabel={sourceLabels(e)}
                       colorHex={colorHex(e.color)}
                       highwayName={highwayOf(e.highway)?.name}
-                    />
+                      canComment={hasPermission("history:comment")}
+                      canEdit={canEditHistory}
+                      onSavedComments={refreshHistory}
+                     />
                   );
                 })}
               </ul>
@@ -640,6 +647,9 @@ interface HistoryCardProps {
   sourceLabel: string;
   colorHex: string;
   highwayName?: string;
+  canComment: boolean;
+  canEdit: boolean;
+  onSavedComments: () => Promise<void>;
 }
 
 function badgeFor(e: HistoryEvent): { label: string; tone: "ok" | "neutral" | "adm" } {
@@ -661,8 +671,12 @@ function HistoryCard({
   sourceLabel,
   colorHex,
   highwayName,
+  canComment,
+  canEdit,
+  onSavedComments,
 }: HistoryCardProps) {
   const badge = badgeFor(e);
+  const detailCount = mods.length + (e.comments?.length ?? 0);
   return (
     <li
       className="break-inside-avoid rounded-lg border border-line bg-card p-3.5 shadow-sm"
@@ -723,9 +737,9 @@ function HistoryCard({
         >
           <IconDetail />
           Détails
-          {mods.length > 0 && (
+          {detailCount > 0 && (
             <span className="rounded-full bg-adm-700 px-1.5 py-px text-[10px] font-bold text-white tabular-nums">
-              {mods.length}
+              {detailCount}
             </span>
           )}
           <IconChevron dir={detailOpen ? "up" : "down"} />
@@ -733,7 +747,7 @@ function HistoryCard({
 
         <span aria-hidden="true" className="mx-0.5 h-5 w-px bg-line" />
 
-        {e.statusId !== "cloture" && (
+        {canEdit && e.statusId !== "cloture" && (
           <button
             type="button"
             title="Bilan de l'événement — répondre"
@@ -748,7 +762,7 @@ function HistoryCard({
             )}
           </button>
         )}
-        {e.resolved && (
+        {canEdit && e.resolved && (
           <button
             type="button"
             title="Rouvrir"
@@ -775,7 +789,7 @@ function HistoryCard({
         >
           <IconWhatsApp />
         </a>
-        {e.statusId !== "cloture" && (
+        {canEdit && e.statusId !== "cloture" && (
           <button
             type="button"
             title="Retour à la normale"
@@ -819,6 +833,12 @@ function HistoryCard({
               ))}
             </div>
           )}
+
+          <CommentsPanel
+            event={e}
+            canComment={canComment}
+            onSaved={onSavedComments}
+          />
         </div>
       )}
     </li>

@@ -65,7 +65,7 @@ export function BilanOptionsFields({ opts }: BilanOptionsFieldsProps) {
                 onToggle={opts.toggleVehicle}
               />
               {opts.vehiclesMissing && (
-                <p className="mt-2 text-sm font-semibold text-red-600">
+                <p className="mt-2 text-sm font-semibold text-red-deep">
                   Sélectionnez au moins un véhicule pour continuer.
                 </p>
               )}

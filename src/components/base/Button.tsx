@@ -12,19 +12,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-adm-700 text-white hover:bg-adm-800 active:bg-adm-900 disabled:bg-adm-300",
+    "ig-gradient text-white hover:brightness-105 active:brightness-95 disabled:opacity-50",
   secondary:
-    "border border-line bg-card text-ink hover:bg-adm-50 active:bg-adm-100 disabled:text-ink-faint disabled:bg-card",
+    "border border-ig-border-strong bg-transparent text-ig-blue hover:bg-ig-surface-2 active:bg-ig-surface-2 disabled:text-ink-faint disabled:bg-card-2",
   ghost:
-    "text-adm-700 hover:bg-adm-50 active:bg-adm-100 disabled:text-ink-faint disabled:bg-transparent",
+    "text-ig-blue hover:bg-ig-surface-2 active:bg-ig-surface-2 disabled:text-ink-faint disabled:bg-transparent",
   danger:
-    "bg-red-deep text-white hover:bg-red active:bg-red-deep disabled:bg-red/40",
+    "bg-red text-white hover:bg-red-deep active:bg-red-deep disabled:bg-red/40 disabled:text-white/70",
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-sm gap-2",
-  md: "h-12 px-5 text-base gap-2",
-  lg: "h-14 px-7 text-base gap-2.5",
+  sm: "h-9 px-4 text-sm gap-2",
+  md: "h-11 px-5 text-base gap-2",
+  lg: "h-14 px-7 text-lg gap-2.5",
 };
 
 export function Button({
@@ -39,7 +39,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex cursor-pointer items-center justify-center rounded-lg font-semibold transition-colors duration-150 select-none disabled:cursor-not-allowed ${variantClasses[variant]} ${sizeClasses[size]} ${fullWidth ? "w-full" : ""} ${className}`}
+      className={`pressable inline-flex cursor-pointer items-center justify-center rounded-[var(--radius-capsule)] font-semibold select-none disabled:cursor-not-allowed ${variantClasses[variant]} ${sizeClasses[size]} ${fullWidth ? "w-full" : ""} ${className}`}
       {...rest}
     >
       {children}

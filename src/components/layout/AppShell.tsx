@@ -1,8 +1,14 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { BottomNavigation } from "./BottomNavigation";
-import { NAV_ITEMS } from "./navigation";
+import {
+  NAV_ITEMS,
+  filterNavForUser,
+  firstAccessibleScreen,
+} from "./navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { canAccessScreen } from "@/services/access";
 import type { ScreenId } from "@/types";
 
 interface AppShellProps {
@@ -21,7 +27,20 @@ function screenTitle(screen: ScreenId): string {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const [screen, setScreen] = useState<ScreenId>("historique");
+  const { user } = useAuth();
+  const [screen, setScreen] = useState<ScreenId>(
+    () => firstAccessibleScreen(user) ?? "administration",
+  );
+
+  const navItems = useMemo(() => filterNavForUser(user), [user]);
+  const allowed = canAccessScreen(user, screen);
+
+  useEffect(() => {
+    if (!canAccessScreen(user, screen)) {
+      const next = firstAccessibleScreen(user);
+      if (next) setScreen(next);
+    }
+  }, [user, screen]);
 
   useEffect(() => {
     document.title = screenTitle(screen);
@@ -31,18 +50,43 @@ export function AppShell({ children }: AppShellProps) {
     window.scrollTo({ top: 0 });
   }, [screen]);
 
-  const navigate = (s: ScreenId) => setScreen(s);
+  const navigate = (s: ScreenId) => {
+    if (canAccessScreen(user, s)) setScreen(s);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-paper">
       <Header />
       <div className="mx-auto flex w-full max-w-7xl flex-1 items-stretch">
-        <Sidebar active={screen} onNavigate={navigate} />
-        <main className="min-w-0 flex-1 px-4 pt-6 pb-24 sm:px-6 md:pb-8">
-          {children(screen, navigate)}
+        <Sidebar items={navItems} active={screen} onNavigate={navigate} />
+        <main className="min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-6 md:pb-8">
+          {navItems.length === 0 ? (
+            <div className="mx-auto mt-16 max-w-md rounded-[var(--radius-card)] border border-line bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,.08)]">
+              <p className="font-display text-2xl text-ink">
+                Aucune page autorisée
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                Aucune permission ne vous a encore été accordée. Contactez votre
+                Manager principal.
+              </p>
+            </div>
+          ) : allowed ? (
+            children(screen, navigate)
+          ) : (
+            <div className="mx-auto mt-16 max-w-md rounded-[var(--radius-card)] border border-line bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,.08)]">
+              <p className="font-display text-2xl text-ink">Accès non autorisé</p>
+              <p className="mt-2 text-sm text-ink-soft">
+                Cette page ne fait pas partie de vos permissions.
+              </p>
+            </div>
+          )}
         </main>
       </div>
-      <BottomNavigation active={screen} onNavigate={navigate} />
+      <BottomNavigation
+        items={navItems}
+        active={screen}
+        onNavigate={navigate}
+      />
     </div>
   );
 }

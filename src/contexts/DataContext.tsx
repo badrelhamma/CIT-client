@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Catalogs, Highway, HistoryEvent } from "@/types";
 
 interface DataContextValue {
@@ -30,6 +31,8 @@ interface DataContextValue {
 const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const { hasPermission } = useAuth();
+  const canViewHistory = hasPermission("page:historique");
   const [highways, setHighways] = useState<Highway[]>([]);
   const [catalogs, setCatalogs] = useState<Catalogs | null>(null);
   const [history, setHistory] = useState<HistoryEvent[]>([]);
@@ -62,6 +65,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshHistory = useCallback(async () => {
+    if (!canViewHistory) {
+      if (mounted.current) {
+        setHistory([]);
+        setErrorHistory(null);
+        setLoadingHistory(false);
+      }
+      return;
+    }
     setLoadingHistory(true);
     setErrorHistory(null);
     try {
@@ -72,7 +83,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     } finally {
       if (mounted.current) setLoadingHistory(false);
     }
-  }, []);
+  }, [canViewHistory]);
 
   useEffect(() => {
     void checkHealth();
@@ -112,8 +123,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void refreshHistory();
-  }, [refreshHistory]);
+    if (canViewHistory) {
+      void refreshHistory();
+    } else {
+      setHistory([]);
+      setErrorHistory(null);
+      setLoadingHistory(false);
+    }
+  }, [canViewHistory, refreshHistory]);
 
   const highwayById = useCallback(
     (id: string) => highways.find((h) => h.id === id),

@@ -18,7 +18,7 @@ describe("buildAdmMessage", () => {
       "🟡 *Accident d'un seul véhicule léger*",
       "📍 *A2 / PK 358 / 02 km après Guercif ➡️ Rabat*",
       "*Détection* : Caméra",
-      "*En cours de confirmation*",
+      "⏳ *En cours de confirmation*",
     ].join("\n");
 
     expect(result).toBe(expected);
@@ -102,8 +102,7 @@ describe("buildAdmMessage", () => {
       statusLabel: "En cours de confirmation",
     });
 
-    expect(result).toContain("*En cours de confirmation*");
-    expect(result).not.toContain("⏳");
+    expect(result).toContain("⏳ *En cours de confirmation*");
     expect(result).not.toContain("*Voie impactée*");
     expect(result.split("\n")).toHaveLength(4);
   });

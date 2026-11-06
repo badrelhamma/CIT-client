@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 type Tone = "neutral" | "adm" | "ok" | "warn" | "danger";
 
 const toneClasses: Record<Tone, string> = {
-  neutral: "bg-paper text-ink-soft border-line",
+  neutral: "bg-card-2 text-ink-soft border-line-soft",
   adm: "bg-adm-100 text-adm-800 border-adm-300",
   ok: "bg-ok/10 text-ok border-ok/30",
   warn: "bg-orange/10 text-orange border-orange/40",
@@ -30,11 +30,11 @@ export function Chip({
   const interactive = onClick !== undefined;
   const base = `inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-base font-medium whitespace-nowrap transition-colors duration-150 ${toneClasses[tone]}`;
   const state = selected
-    ? "border-adm-600 bg-adm-600 text-white"
+    ? "border-transparent bg-tint text-white"
     : active
-      ? "border-adm-500 bg-adm-500 text-white"
+      ? "border-transparent bg-tint text-white"
       : interactive
-        ? "cursor-pointer hover:border-adm-300 hover:bg-adm-50"
+        ? "cursor-pointer hover:border-adm-300 hover:bg-card-2"
         : "";
 
   return (

@@ -5,7 +5,7 @@ interface ErrorStateProps {
 
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-[#f5aab3] bg-[#ffe3e6] px-6 py-6 text-center">
+    <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-red/30 bg-red/10 px-6 py-6 text-center">
       <p className="text-sm font-semibold text-red-deep">{message}</p>
       {onRetry && (
         <button

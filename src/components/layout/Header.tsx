@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
 import { SystemStatus } from "./SystemStatus";
+import { ThemeToggle } from "./ThemeToggle";
 
 function formatKm(total: number): string {
   return total.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 function HeaderClock() {
@@ -15,7 +26,7 @@ function HeaderClock() {
   }, []);
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-bold text-ink tabular-nums">
+    <span className="material-regular inline-flex items-center gap-2 rounded-full border border-line-soft px-3.5 py-1.5 text-xs font-bold text-ink tabular-nums shadow-sm">
       <span aria-hidden="true" className="size-1.5 rounded-full bg-ok" />
       {now.toLocaleTimeString("fr-FR", {
         hour: "2-digit",
@@ -27,21 +38,32 @@ function HeaderClock() {
 
 export function Header() {
   const { highways, catalogs } = useData();
+  const { user, logout } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const axes = highways.length;
   const stats = catalogs?.networkStats.data;
 
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-card">
+    <header className="glass-bar sticky top-0 z-30">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <div
             aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 p-[2px]"
+            className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-line bg-card-2"
           >
-            <div className="flex size-9 items-center justify-center rounded-full bg-card font-display text-sm text-adm-600">
+            <span className="font-display text-[13px] font-extrabold tracking-[0.08em] text-white">
               CIT
-            </div>
+            </span>
           </div>
           <div className="min-w-0">
             <h1 className="font-display text-xl leading-none text-ink">
@@ -54,7 +76,72 @@ export function Header() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {user && (
+            <div className="flex items-center gap-1.5 border-l border-line-soft pl-2">
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-adm-100 text-xs font-bold text-adm-800"
+              >
+                {initials(user.name)}
+              </span>
+              <div className="hidden max-w-36 text-right lg:block">
+                <p className="truncate text-xs font-bold text-ink">
+                  {user.name}
+                </p>
+                <p className="truncate text-[10px] text-ink-faint">
+                  {user.role}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                disabled={loggingOut}
+                title={`Se déconnecter (${user.name})`}
+                aria-label={`Se déconnecter (${user.name})`}
+                className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-adm-50 hover:text-adm-700 disabled:cursor-wait disabled:opacity-50"
+              >
+                {loggingOut ? (
+                  <svg
+                    aria-hidden="true"
+                    className="size-4 animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    aria-hidden="true"
+                    className="size-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <path d="m16 17 5-5-5-5" />
+                    <path d="M21 12H9" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          )}
           <HeaderClock />
+          <ThemeToggle />
           <SystemStatus />
         </div>
       </div>

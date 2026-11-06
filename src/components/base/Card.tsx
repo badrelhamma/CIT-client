@@ -13,7 +13,7 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`rounded-lg border border-line bg-card ${padded ? "p-5 sm:p-6" : ""} ${className}`}
+      className={`rounded-[var(--radius-card)] border border-line bg-card shadow-[0_1px_2px_rgba(0,0,0,.08)] ${padded ? "p-5 sm:p-6" : ""} ${className}`}
       {...rest}
     >
       {children}
