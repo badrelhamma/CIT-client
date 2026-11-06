@@ -1,0 +1,94 @@
+/*
+ * Instagram theme for Tailwind CSS v4.
+ * Import after Tailwind: `@import "tailwindcss"; @import ".../tailwind.css";`
+ * Then use utilities such as bg-ig-pink, text-ig-text, rounded-ig, bg-ig-gradient.
+ */
+
+@theme {
+  --color-ig-purple: #833ab4;
+  --color-ig-magenta: #c13584;
+  --color-ig-pink: #e1306c;
+  --color-ig-red: #fd1d1d;
+  --color-ig-orange: #f77737;
+  --color-ig-amber: #fcaf45;
+  --color-ig-gold: #ffdc80;
+  --color-ig-blue: #0095f6;
+
+  --color-ig-bg: #000000;
+  --color-ig-surface: #121212;
+  --color-ig-surface-2: #1c1c1e;
+  --color-ig-border: #262626;
+  --color-ig-border-strong: #363636;
+  --color-ig-text: #f5f5f5;
+  --color-ig-text-2: #a8a8a8;
+  --color-ig-text-3: #d4d4d4;
+  --color-ig-muted: #737373;
+  --color-ig-link: #0095f6;
+
+  --color-ig-success: #1ea672;
+  --color-ig-warning: #fcaf45;
+  --color-ig-danger: #fd1d1d;
+
+  --font-ig-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  --font-ig-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  --radius-ig-sm: 8px;
+  --radius-ig: 12px;
+  --radius-ig-lg: 16px;
+  --radius-ig-xl: 24px;
+  --radius-ig-pill: 9999px;
+
+  --shadow-ig-card: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-ig-elevated: 0 8px 24px rgba(0, 0, 0, 0.18);
+  --shadow-ig-ring: 0 0 0 2px rgba(225, 48, 108, 0.35);
+
+  --ease-ig: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@layer utilities {
+  .bg-ig-gradient {
+    background-image: linear-gradient(
+      45deg,
+      #833ab4 0%,
+      #c13584 22%,
+      #e1306c 44%,
+      #fd1d1d 66%,
+      #f77737 84%,
+      #fcaf45 100%
+    );
+  }
+
+  .bg-ig-gradient-story {
+    background-image: conic-gradient(
+      from 180deg,
+      #405de6,
+      #5851db,
+      #833ab4,
+      #c13584,
+      #e1306c,
+      #fd1d1d,
+      #f56040,
+      #f77737,
+      #fcaf45,
+      #ffdc80,
+      #405de6
+    );
+  }
+
+  .text-ig-gradient {
+    background-image: linear-gradient(
+      45deg,
+      #833ab4 0%,
+      #c13584 22%,
+      #e1306c 44%,
+      #fd1d1d 66%,
+      #f77737 84%,
+      #fcaf45 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}

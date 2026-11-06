@@ -1,0 +1,254 @@
+/*
+ * Instagram theme — shared design tokens and primitives.
+ * Load this file once per surface (web app, mobile webview, generated HTML).
+ * Dark is the default; add data-theme="light" on <html> for light mode.
+ */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ig-purple: #833ab4;
+  --ig-magenta: #c13584;
+  --ig-pink: #e1306c;
+  --ig-red: #fd1d1d;
+  --ig-orange: #f77737;
+  --ig-amber: #fcaf45;
+  --ig-gold: #ffdc80;
+  --ig-blue: #0095f6;
+
+  --ig-gradient: linear-gradient(
+    45deg,
+    var(--ig-purple) 0%,
+    var(--ig-magenta) 22%,
+    var(--ig-pink) 44%,
+    var(--ig-red) 66%,
+    var(--ig-orange) 84%,
+    var(--ig-amber) 100%
+  );
+  --ig-gradient-story: conic-gradient(
+    from 180deg,
+    #405de6,
+    #5851db,
+    #833ab4,
+    #c13584,
+    #e1306c,
+    #fd1d1d,
+    #f56040,
+    #f77737,
+    #fcaf45,
+    #ffdc80,
+    #405de6
+  );
+
+  --ig-bg: #000000;
+  --ig-surface: #121212;
+  --ig-surface-2: #1c1c1e;
+  --ig-border: #262626;
+  --ig-border-strong: #363636;
+  --ig-text: #f5f5f5;
+  --ig-text-2: #a8a8a8;
+  --ig-text-3: #d4d4d4;
+  --ig-muted: #737373;
+  --ig-link: #0095f6;
+
+  --ig-success: #1ea672;
+  --ig-warning: #fcaf45;
+  --ig-danger: #fd1d1d;
+
+  --ig-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  --ig-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  --ig-radius-sm: 8px;
+  --ig-radius-md: 12px;
+  --ig-radius-lg: 16px;
+  --ig-radius-xl: 24px;
+  --ig-radius-pill: 9999px;
+
+  --ig-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --ig-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.18);
+  --ig-ring: 0 0 0 2px rgba(225, 48, 108, 0.35);
+
+  --ig-fast: 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ig-base: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ig-slow: 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --ig-bg: #fafafa;
+  --ig-surface: #ffffff;
+  --ig-surface-2: #f5f5f5;
+  --ig-border: #dbdbdb;
+  --ig-border-strong: #c7c7c7;
+  --ig-text: #262626;
+  --ig-text-2: #737373;
+  --ig-text-3: #3c3c3c;
+  --ig-muted: #a8a8a8;
+  --ig-link: #0095f6;
+
+  --ig-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --ig-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --ig-bg: #fafafa;
+    --ig-surface: #ffffff;
+    --ig-surface-2: #f5f5f5;
+    --ig-border: #dbdbdb;
+    --ig-border-strong: #c7c7c7;
+    --ig-text: #262626;
+    --ig-text-2: #737373;
+    --ig-text-3: #3c3c3c;
+    --ig-muted: #a8a8a8;
+    --ig-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --ig-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.ig-surface {
+  background: var(--ig-surface);
+  color: var(--ig-text);
+  font-family: var(--ig-font-sans);
+}
+
+.ig-gradient {
+  background-image: var(--ig-gradient);
+}
+
+.ig-gradient-text {
+  background-image: var(--ig-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ig-ring {
+  background-image: var(--ig-gradient-story);
+  padding: 2px;
+  border-radius: var(--ig-radius-pill);
+}
+
+.ig-ring > * {
+  border-radius: inherit;
+  border: 2px solid var(--ig-surface);
+}
+
+.ig-card {
+  background: var(--ig-surface);
+  border: 1px solid var(--ig-border);
+  border-radius: var(--ig-radius-md);
+  box-shadow: var(--ig-shadow-card);
+  color: var(--ig-text);
+}
+
+.ig-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--ig-radius-pill);
+  background-image: var(--ig-gradient);
+  color: #ffffff;
+  font-family: var(--ig-font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter var(--ig-fast), transform var(--ig-fast);
+}
+
+.ig-btn:hover {
+  filter: brightness(1.05);
+}
+
+.ig-btn:active {
+  transform: scale(0.98);
+}
+
+.ig-btn:focus-visible,
+.ig-input:focus-visible,
+.ig-pill:focus-visible {
+  outline: none;
+  box-shadow: var(--ig-ring);
+}
+
+.ig-btn-secondary {
+  background-image: none;
+  background: transparent;
+  border: 1px solid var(--ig-border-strong);
+  color: var(--ig-text);
+}
+
+.ig-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  background: var(--ig-surface-2);
+  border: 1px solid var(--ig-border);
+  border-radius: var(--ig-radius-md);
+  color: var(--ig-text);
+  font-family: var(--ig-font-sans);
+  font-size: 14px;
+  transition: border-color var(--ig-fast), box-shadow var(--ig-fast);
+}
+
+.ig-input::placeholder {
+  color: var(--ig-muted);
+}
+
+.ig-input:focus {
+  border-color: var(--ig-pink);
+}
+
+.ig-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--ig-surface-2);
+  border: 1px solid var(--ig-border);
+  border-radius: var(--ig-radius-pill);
+  color: var(--ig-text-2);
+  font-family: var(--ig-font-sans);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.ig-link {
+  color: var(--ig-link);
+  text-decoration: none;
+}
+
+.ig-link:hover {
+  text-decoration: underline;
+}
+
+.ig-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ig-border-strong) transparent;
+}
+
+.ig-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ig-scroll::-webkit-scrollbar-thumb {
+  background: var(--ig-border-strong);
+  border-radius: var(--ig-radius-pill);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-btn,
+  .ig-input {
+    transition: none;
+  }
+}

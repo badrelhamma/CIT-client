@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "../../../theme/instagram/instagram.css";
-@import "../../../theme/instagram/tailwind.css";
+@import "./instagram.css";
+@import "./tailwind.css";
 
 :root {
   --tint: var(--ig-pink);
