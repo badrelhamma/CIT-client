@@ -170,7 +170,7 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
 
   function typeLabel(e: HistoryEvent) {
     return (
-      catalogs?.requestTypes.data.find((t) => t.id === e.typeId)?.label ??
+      catalogs?.requestTypes?.data?.find((t) => t.id === e.typeId)?.label ??
       e.typeId
     );
   }
@@ -179,13 +179,16 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
     return e.sourceIds
       .map(
         (id) =>
-          catalogs?.detectionSources.data.find((s) => s.id === id)?.label ?? id,
+          catalogs?.detectionSources?.data?.find((s) => s.id === id)?.label ??
+          id,
       )
       .join(", ");
   }
 
   function colorHex(id: string) {
-    return catalogs?.eventColors.data.find((c) => c.id === id)?.hex ?? "#7c8ea3";
+    return (
+      catalogs?.eventColors?.data?.find((c) => c.id === id)?.hex ?? "#7c8ea3"
+    );
   }
 
   function highwayOf(id: string) {
@@ -259,9 +262,9 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
   const reportCtx = useMemo(
     () => ({
       typeLabel: (id: string) =>
-        catalogs?.requestTypes.data.find((t) => t.id === id)?.label ?? id,
+        catalogs?.requestTypes?.data?.find((t) => t.id === id)?.label ?? id,
       statusLabel: (id: string) =>
-        catalogs?.statuses.data.find((s) => s.id === id)?.label ?? id,
+        catalogs?.statuses?.data?.find((s) => s.id === id)?.label ?? id,
       colorLabel: (id: string) => colorLabel(id),
       colorHex: (id: string) => colorHex(id),
       highwayLabel: (id: string) => {
@@ -269,7 +272,7 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
         return hw ? `${hw.id} — ${hw.name}` : id;
       },
       sourceLabel: (e: HistoryEvent) => sourceLabels(e),
-      bilanTemplates: catalogs?.bilanTypeTemplates.data ?? [],
+      bilanTemplates: catalogs?.bilanTypeTemplates?.data ?? [],
     }),
     [catalogs, highways],
   );

@@ -42,7 +42,7 @@ export function Header() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   const axes = highways.length;
-  const stats = catalogs?.networkStats.data;
+  const stats = catalogs?.networkStats?.data;
 
   async function handleLogout() {
     setLoggingOut(true);

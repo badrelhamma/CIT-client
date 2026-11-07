@@ -1,7 +1,6 @@
-import { useState, type FormEvent, type SVGProps } from "react";
+import { useEffect, useState, type FormEvent, type SVGProps } from "react";
 import { Button } from "@/components/base/Button";
 import { Field } from "@/components/base/Field";
-import BlurText from "@/components/reactbits/BlurText/BlurText";
 import { API_BASE_URL, apiUrl } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError, api } from "@/services/api";
@@ -94,32 +93,20 @@ function ArrowLeftIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-function Brand({ dark = false }: { dark?: boolean }) {
+function Brand() {
   return (
-    <div className="flex items-center gap-3">
-      <div
-        className={`flex size-11 shrink-0 items-center justify-center rounded-xl font-display text-base font-extrabold tracking-[0.08em] ${
-          dark
-            ? "border border-line bg-card text-ink"
-            : "border border-line bg-card-2 text-ink"
-        }`}
-      >
-        CIT
-      </div>
+    <div className="flex flex-col items-center gap-3.5 text-center">
+      <img
+        src="/logo-cit.png"
+        alt="Logo CIT"
+        className="size-24 shrink-0 rounded-2xl object-contain"
+      />
       <div>
-        <p
-          className={`font-display text-lg leading-none tracking-tight ${
-            dark ? "text-white" : "text-ink"
-          }`}
-        >
+        <p className="font-display text-lg leading-none tracking-tight text-white">
           CIT
         </p>
-        <p
-          className={`mt-1 text-[10px] tracking-[0.18em] uppercase ${
-            dark ? "text-white/50" : "text-ink-faint"
-          }`}
-        >
-          Centre d'information trafic
+        <p className="mt-1 text-[10px] tracking-[0.12em] text-white/55 uppercase">
+          Autoroutes du Maroc
         </p>
       </div>
     </div>
@@ -133,28 +120,86 @@ function RoadBackdrop() {
       className="pointer-events-none absolute inset-0 h-full w-full"
       viewBox="0 0 640 900"
       preserveAspectRatio="xMidYMax slice"
-      fill="none"
     >
-      <g stroke="rgba(255,255,255,0.08)" strokeWidth="2">
-        <path d="M320 90 L-80 900" />
-        <path d="M320 90 L720 900" />
-      </g>
-      <g stroke="rgba(255,255,255,0.07)" strokeWidth="2" strokeDasharray="16 26">
-        <path d="M320 90 L90 900" />
-        <path d="M320 90 L320 900" />
-        <path d="M320 90 L550 900" />
-      </g>
-      <g stroke="rgba(225,48,108,0.14)" strokeWidth="1.5">
-        <circle cx="320" cy="90" r="200" />
-        <circle cx="320" cy="90" r="320" />
-        <circle cx="320" cy="90" r="460" />
-      </g>
+      <defs>
+        <linearGradient id="cit-night-sky" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#03091f" />
+          <stop offset="0.58" stopColor="#071747" />
+          <stop offset="1" stopColor="#100b32" />
+        </linearGradient>
+        <linearGradient id="cit-road" x1="0" y1="0" x2="0.5" y2="1">
+          <stop offset="0" stopColor="#121538" />
+          <stop offset="1" stopColor="#07091e" />
+        </linearGradient>
+      </defs>
+      <rect width="640" height="900" fill="url(#cit-night-sky)" />
+      <ellipse cx="320" cy="465" rx="440" ry="250" fill="#8324a9" opacity=".18" />
+      <path
+        d="m0 440 83-47 60 24 83-54 76 41 78-49 74 47 83-54 103 51v260H0Z"
+        fill="#101437"
+      />
+      <path
+        d="m0 500 76-36 74 22 74-44 82 48 78-45 82 49 81-43 93 50v240H0Z"
+        fill="#090f2d"
+      />
+      <path d="M0 530h640" stroke="#833ab4" strokeWidth="2" opacity=".3" />
+      <path d="M82 454v112m-1-110 20 8" stroke="#68718f" strokeWidth="3" />
+      <circle cx="81" cy="452" r="7" fill="#fd1d1d" />
+      <circle cx="81" cy="452" r="18" fill="#f77737" opacity=".2" />
+      <path d="M533 412v160" stroke="#68718f" strokeWidth="4" />
+      <rect
+        x="484"
+        y="354"
+        width="100"
+        height="90"
+        rx="8"
+        fill="#09285e"
+        stroke="#bac8ff"
+        strokeWidth="3"
+        transform="rotate(-5 534 399)"
+      />
+      <path
+        d="M534 370v54m-22-33 22-2 22 2m-38 12 38-2m-39 14 39-2"
+        stroke="#edf2ff"
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <path
+        d="m0 700 206-117q83-47 114-112 31 65 114 112l206 117v200H0Z"
+        fill="url(#cit-road)"
+      />
+      <path
+        d="m0 700 206-117q83-47 114-112m320 229L434 583q-83-47-114-112"
+        fill="none"
+        stroke="#833ab4"
+        strokeWidth="3"
+        opacity=".65"
+      />
+      <path
+        d="M322 492q-5 51-38 90m-14 17q-33 38-73 70m-17 17q-38 43-76 80"
+        fill="none"
+        stroke="#c13584"
+        strokeWidth="6"
+        strokeDasharray="25 20"
+        opacity=".55"
+      />
+      <path d="M110 601 0 665m530-64 110 64" stroke="#fd1d1d" strokeWidth="5" opacity=".5" />
     </svg>
   );
 }
 
 export function LoginScreen() {
   const { login, error: authError } = useAuth();
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousTheme = root.getAttribute("data-theme");
+    root.setAttribute("data-theme", "dark");
+    return () => {
+      if (previousTheme) root.setAttribute("data-theme", previousTheme);
+      else root.removeAttribute("data-theme");
+    };
+  }, []);
+
   const [mode, setMode] = useState<"login" | "forgot">("login");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -232,65 +277,26 @@ export function LoginScreen() {
   const visibleError = error ?? authError;
 
   return (
-    <main className="grid min-h-screen bg-paper lg:grid-cols-[1.1fr_1fr]">
-      <section className="relative hidden overflow-hidden border-r border-line bg-black p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+    <main className="grid min-h-screen bg-paper lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="relative hidden min-h-screen overflow-hidden border-r border-line bg-black p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
         <RoadBackdrop />
 
-        <div className="relative">
-          <Brand dark />
-        </div>
-
-        <div className="relative max-w-lg">
-          <p className="text-[11px] font-bold tracking-[0.22em] text-adm-200 uppercase">
-            Exploitation autoroutière · ADM
+        <div className="relative flex flex-1 flex-col items-center justify-center text-center">
+          <img
+            src="/logo-cit.png"
+            alt="Logo CIT"
+            className="size-48 rounded-[2rem] object-contain shadow-2xl shadow-ig-purple/20 xl:size-56"
+          />
+          <h2 className="mt-7 font-display text-4xl font-extrabold tracking-tight xl:text-5xl">
+            CIT
+          </h2>
+          <p className="mt-3 text-base text-white/75">
+            Centre d'information trafic
           </p>
-          <div
-            role="heading"
-            aria-level={2}
-            className="mt-5 font-display text-5xl leading-[0.95] tracking-tight xl:text-6xl"
-          >
-            <BlurText
-              text="Localiser."
-              animateBy="letters"
-              direction="bottom"
-              delay={70}
-              stepDuration={0.3}
-              className="justify-start"
-            />
-            <BlurText
-              text="DǸcider."
-              animateBy="letters"
-              direction="bottom"
-              delay={70}
-              stepDuration={0.3}
-              className="justify-start"
-            />
-            <BlurText
-              text="Tracer."
-              animateBy="letters"
-              direction="bottom"
-              delay={70}
-              stepDuration={0.3}
-              className="justify-start"
-            />
-          </div>
-          <p className="mt-6 max-w-sm text-sm leading-relaxed text-white/65">
-            Un poste de commandement unique pour situer un événement au PK,
-            coordonner les équipes et conserver la mémoire de chaque
-            intervention.
-          </p>
-
-          <div className="mt-9 flex flex-wrap gap-2">
-            {["Axes", "Historique", "Répertoire", "Comptes rendus"].map(
-              (item) => (
-                <span
-                  key={item}
-                  className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-semibold tracking-tight text-white/70"
-                >
-                  {item}
-                </span>
-              ),
-            )}
+          <div className="mt-4 flex items-center gap-3 text-sm text-white/60">
+            <span className="h-px w-8 bg-ig-pink" />
+            Autoroutes du Maroc
+            <span className="h-px w-8 bg-ig-orange" />
           </div>
         </div>
 
@@ -304,9 +310,12 @@ export function LoginScreen() {
         </div>
       </section>
 
-      <section className="flex flex-col bg-card lg:border-l lg:border-line-soft">
-        <div className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8">
-          <div className="w-full max-w-[420px]">
+      <section className="relative isolate flex min-h-screen flex-col overflow-hidden bg-[#050a20] lg:bg-paper">
+        <div className="absolute inset-0 lg:hidden">
+          <RoadBackdrop />
+        </div>
+        <div className="relative z-10 flex flex-1 items-center justify-center px-5 py-10 sm:px-8">
+          <div className="w-full max-w-[420px] rounded-xl border border-ig-purple/50 bg-[#091131]/95 p-6 shadow-2xl shadow-black/30 sm:p-8">
             <div className="mb-9 lg:hidden">
               <Brand />
             </div>

@@ -109,9 +109,10 @@ export function EventScreen() {
 
   useEffect(() => {
     if (!catalogs) return;
-    const allowed = statusesForState(eventState, catalogs.statuses.data);
+    const statuses = catalogs.statuses?.data ?? [];
+    const allowed = statusesForState(eventState, statuses);
     if (status && allowed.some((s) => s.id === status.id)) return;
-    const next = defaultStatusForState(eventState, catalogs.statuses.data);
+    const next = defaultStatusForState(eventState, statuses);
     if (next) setStatus(next);
   }, [catalogs, eventState, status]);
 
@@ -220,7 +221,8 @@ export function EventScreen() {
     const sources = sourceIds
       .map(
         (id) =>
-          catalogs.detectionSources.data.find((s) => s.id === id)?.label ?? "",
+          catalogs.detectionSources?.data?.find((s) => s.id === id)?.label ??
+          "",
       )
       .filter((label) => label.length > 0);
     return buildAdmMessage({
@@ -770,7 +772,7 @@ export function EventScreen() {
             <div className="grid gap-5">
               <Field label="Couleur">
                 <ColorSelector
-                  colors={catalogs.eventColors.data}
+                  colors={catalogs.eventColors?.data ?? []}
                   value={color}
                   onChange={setColor}
                 />
@@ -779,7 +781,7 @@ export function EventScreen() {
                 <StatusSelector
                   statuses={statusesForState(
                     eventState,
-                    catalogs.statuses.data,
+                    catalogs.statuses?.data ?? [],
                   )}
                   value={status}
                   onChange={setStatus}
@@ -789,8 +791,8 @@ export function EventScreen() {
                 <DetectionSelector
                   sources={
                     isConfirmer
-                      ? catalogs.detectionSources.data
-                      : catalogs.detectionSources.data.filter(
+                      ? catalogs.detectionSources?.data ?? []
+                      : (catalogs.detectionSources?.data ?? []).filter(
                           (s) => s.id !== "appel-5050",
                         )
                   }
@@ -801,7 +803,7 @@ export function EventScreen() {
               {isConfirmer && (
                 <Field label="Type d'événement" htmlFor="event-type-select">
                   <EventTypeSelector
-                    types={catalogs.requestTypes.data}
+                    types={catalogs.requestTypes?.data ?? []}
                     value={type}
                     onChange={setType}
                   />

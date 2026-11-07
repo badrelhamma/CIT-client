@@ -37,8 +37,8 @@ export function NetworkScreen() {
   } = useData();
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const stats = catalogs?.networkStats.data;
-  const pending = catalogs?.pendingAxes.data ?? [];
+  const stats = catalogs?.networkStats?.data;
+  const pending = catalogs?.pendingAxes?.data ?? [];
 
   if (loadingHighways || loadingCatalogs) {
     return (

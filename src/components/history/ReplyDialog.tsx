@@ -53,10 +53,10 @@ export function ReplyDialog({
   const bilanOpts = useBilanOptions(catalogs);
 
   const [status, setStatus] = useState<StatusDef | null>(
-    catalogs.statuses.data.find((s) => s.id === event.statusId) ?? null,
+    catalogs.statuses?.data?.find((s) => s.id === event.statusId) ?? null,
   );
   const [color, setColor] = useState<EventColorDef | null>(
-    catalogs.eventColors.data.find((c) => c.id === event.color) ?? null,
+    catalogs.eventColors?.data?.find((c) => c.id === event.color) ?? null,
   );
   const [saving, setSaving] = useState(false);
 
@@ -84,7 +84,7 @@ export function ReplyDialog({
   const destText = locResult?.destination ?? "";
 
   const eventTypeLabel =
-    catalogs.requestTypes.data.find((t) => t.id === event.typeId)?.label ??
+    catalogs.requestTypes?.data?.find((t) => t.id === event.typeId)?.label ??
     event.typeId;
 
   /* Le type du message ADM est celui sélectionné dans les options du bilan
@@ -294,7 +294,7 @@ export function ReplyDialog({
         <h3 className="mb-4 text-base font-bold text-adm-700">Statut</h3>
         <Field label="Statut de la réponse">
           <StatusSelector
-            statuses={catalogs.statuses.data}
+            statuses={catalogs.statuses?.data ?? []}
             value={status}
             onChange={setStatus}
           />
@@ -304,7 +304,7 @@ export function ReplyDialog({
       <div className="mb-4">
         <h3 className="mb-4 text-base font-bold text-adm-700">Couleur</h3>
         <ColorSelector
-          colors={catalogs.eventColors.data}
+          colors={catalogs.eventColors?.data ?? []}
           value={color}
           onChange={setColor}
         />

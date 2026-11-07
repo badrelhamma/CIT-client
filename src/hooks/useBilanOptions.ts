@@ -31,14 +31,16 @@ export function useBilanOptions(catalogs: Catalogs | null) {
   useEffect(() => {
     if (!catalogs || prefilledRef.current) return;
     prefilledRef.current = true;
-    setBilanType(catalogs.bilanTypeTemplates.data[0] ?? null);
+    setBilanType(catalogs.bilanTypeTemplates?.data?.[0] ?? null);
     setCount(2);
-    const hasBau = catalogs.lanes.data.some((l) => l.id === "bau");
+    const hasBau = (catalogs.lanes?.data ?? []).some((l) => l.id === "bau");
     setLaneIds(hasBau ? ["bau"] : []);
-    setImpactId(catalogs.trafficImpacts.data[0]?.id ?? "");
-    const firstActor = catalogs.actionActors.data[0]?.id;
+    setImpactId(catalogs.trafficImpacts?.data?.[0]?.id ?? "");
+    const firstActor = catalogs.actionActors?.data?.[0]?.id;
     setActorIds(firstActor ? [firstActor] : []);
-    setActionStatusId(catalogs.actionStatuses.data[0]?.id ?? "sur-place");
+    setActionStatusId(
+      catalogs.actionStatuses?.data?.[0]?.id ?? "sur-place",
+    );
   }, [catalogs]);
 
   function toggleId(
@@ -63,7 +65,7 @@ export function useBilanOptions(catalogs: Catalogs | null) {
   const impactLabel = useMemo(() => {
     if (!impactId) return "";
     return (
-      catalogs?.trafficImpacts.data.find((i) => i.id === impactId)?.label ?? ""
+      catalogs?.trafficImpacts?.data?.find((i) => i.id === impactId)?.label ?? ""
     );
   }, [impactId, catalogs]);
 
@@ -72,7 +74,9 @@ export function useBilanOptions(catalogs: Catalogs | null) {
 
   const laneLabels = useMemo(
     () =>
-      laneIds.map((id) => catalogs?.lanes.data.find((l) => l.id === id)?.label ?? id),
+      laneIds.map(
+        (id) => catalogs?.lanes?.data?.find((l) => l.id === id)?.label ?? id,
+      ),
     [laneIds, catalogs],
   );
 
@@ -80,7 +84,7 @@ export function useBilanOptions(catalogs: Catalogs | null) {
     () =>
       damageIds.map(
         (id) =>
-          catalogs?.damageTypes.data.find((d) => d.id === id)?.label ?? id,
+          catalogs?.damageTypes?.data?.find((d) => d.id === id)?.label ?? id,
       ),
     [damageIds, catalogs],
   );
@@ -89,7 +93,7 @@ export function useBilanOptions(catalogs: Catalogs | null) {
     () =>
       actorIds.map(
         (id) =>
-          catalogs?.actionActors.data.find((a) => a.id === id)?.label ?? id,
+          catalogs?.actionActors?.data?.find((a) => a.id === id)?.label ?? id,
       ),
     [actorIds, catalogs],
   );
@@ -97,8 +101,8 @@ export function useBilanOptions(catalogs: Catalogs | null) {
   const actionStatusLabel = useMemo(() => {
     if (!actionStatusId) return "";
     return (
-      catalogs?.actionStatuses.data.find((s) => s.id === actionStatusId)?.label ??
-      ""
+      catalogs?.actionStatuses?.data?.find((s) => s.id === actionStatusId)
+        ?.label ?? ""
     );
   }, [actionStatusId, catalogs]);
 
@@ -174,15 +178,15 @@ export function useBilanOptions(catalogs: Catalogs | null) {
     actionStatusLabel,
     suffix,
     reset,
-    bilanTypeTemplates: catalogs?.bilanTypeTemplates.data ?? [],
-    vehicleTypes: catalogs?.vehicleTypes.data ?? [],
-    maxVehicles: catalogs?.maxVehicleChoices.data ?? 3,
-    countValues: catalogs?.countValues.data ?? [],
-    lanes: catalogs?.lanes.data ?? [],
-    trafficImpacts: catalogs?.trafficImpacts.data ?? [],
-    damageTypes: catalogs?.damageTypes.data ?? [],
-    actionActors: catalogs?.actionActors.data ?? [],
-    actionStatuses: catalogs?.actionStatuses.data ?? [],
+    bilanTypeTemplates: catalogs?.bilanTypeTemplates?.data ?? [],
+    vehicleTypes: catalogs?.vehicleTypes?.data ?? [],
+    maxVehicles: catalogs?.maxVehicleChoices?.data ?? 3,
+    countValues: catalogs?.countValues?.data ?? [],
+    lanes: catalogs?.lanes?.data ?? [],
+    trafficImpacts: catalogs?.trafficImpacts?.data ?? [],
+    damageTypes: catalogs?.damageTypes?.data ?? [],
+    actionActors: catalogs?.actionActors?.data ?? [],
+    actionStatuses: catalogs?.actionStatuses?.data ?? [],
   };
 }
 

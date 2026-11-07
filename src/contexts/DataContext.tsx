@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api } from "@/services/api";
+import { api, normalizeCatalogs } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Catalogs, Highway, HistoryEvent } from "@/types";
 
@@ -76,8 +76,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setLoadingHistory(true);
     setErrorHistory(null);
     try {
-      const items = await api.history();
-      if (mounted.current) setHistory(items);
+      const result = await api.history();
+      if (mounted.current) {
+        setHistory(Array.isArray(result) ? result : []);
+      }
     } catch {
       if (mounted.current) setErrorHistory("Impossible de charger l'historique.");
     } finally {
@@ -94,8 +96,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setErrorHighways(null);
     api
       .highways()
-      .then((h) => {
-        if (mounted.current) setHighways(h);
+      .then((result) => {
+        if (mounted.current) {
+          setHighways(Array.isArray(result) ? result : []);
+        }
       })
       .catch(() => {
         if (mounted.current) setErrorHighways("Impossible de charger les axes.");
@@ -110,8 +114,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setErrorCatalogs(null);
     api
       .catalogs()
-      .then((c) => {
-        if (mounted.current) setCatalogs(c);
+      .then((result) => {
+        if (mounted.current) setCatalogs(normalizeCatalogs(result));
       })
       .catch(() => {
         if (mounted.current)
