@@ -2,8 +2,9 @@ import { useState, type FormEvent, type SVGProps } from "react";
 import { Button } from "@/components/base/Button";
 import { Field } from "@/components/base/Field";
 import BlurText from "@/components/reactbits/BlurText/BlurText";
+import { API_BASE_URL, apiUrl } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { api } from "@/services/api";
+import { ApiError, api } from "@/services/api";
 import { ADM_EMAIL_DOMAIN, isAdmEmail } from "@/services/email";
 
 const inputClass =
@@ -172,7 +173,27 @@ export function LoginScreen() {
     try {
       await login(identifier, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Connexion impossible.");
+      const loginUrl = apiUrl("/api/auth/login");
+      const networkError =
+        (err instanceof ApiError && err.status === 0) ||
+        err instanceof TypeError ||
+        (err instanceof Error &&
+          /failed to fetch|networkerror|load failed|network request failed/i.test(
+            err.message,
+          ));
+
+      if (networkError) {
+        const contactedUrl = err instanceof ApiError && err.url ? err.url : loginUrl;
+        console.error(
+          `[Login] Serveur inaccessible — URL contactée : ${contactedUrl}`,
+          err,
+        );
+        setError(
+          `Serveur inaccessible (${API_BASE_URL}). Le service est peut-être en veille : réessayez dans quelques instants.`,
+        );
+      } else {
+        setError(err instanceof Error ? err.message : "Connexion impossible.");
+      }
     } finally {
       setSubmitting(false);
     }

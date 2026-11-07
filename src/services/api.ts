@@ -1,3 +1,4 @@
+import { apiUrl } from "@/config/api";
 import type {
   AdminPermissionCatalog,
   AdminUserPayload,
@@ -11,26 +12,38 @@ import type {
   DirectoryEntry,
 } from "@/types";
 
-const apiBaseUrl: string = import.meta.env.VITE_API_URL ?? "";
-
 export class ApiError extends Error {
   status: number;
+  url?: string;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, url?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.url = url;
   }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${apiBaseUrl}${path}`, {
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    ...init,
-  });
+  const url = apiUrl(path);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      ...init,
+    });
+  } catch (err) {
+    console.error(`[API] Requête réseau échouée vers ${url}`, err);
+    throw new ApiError(
+      "Serveur inaccessible. Il est peut-être en veille, réessayez dans quelques instants.",
+      0,
+      url,
+    );
+  }
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as {
       error?: string;
