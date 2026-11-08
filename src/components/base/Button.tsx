@@ -12,19 +12,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "ig-gradient text-white hover:brightness-105 active:brightness-95 disabled:opacity-50",
+    "ig-gradient text-white shadow-[0_8px_24px_rgba(225,48,108,.35)] hover:brightness-110 active:brightness-95 disabled:opacity-50 disabled:shadow-none",
   secondary:
-    "border border-ig-border-strong bg-transparent text-ig-blue hover:bg-ig-surface-2 active:bg-ig-surface-2 disabled:text-ink-faint disabled:bg-card-2",
+    "border border-ig-blue/40 bg-transparent text-ig-blue hover:bg-ig-blue/10 active:bg-ig-blue/15 disabled:text-ink-faint disabled:border-line disabled:bg-transparent",
   ghost:
-    "text-ig-blue hover:bg-ig-surface-2 active:bg-ig-surface-2 disabled:text-ink-faint disabled:bg-transparent",
+    "text-ig-blue hover:bg-ig-blue/10 active:bg-ig-blue/15 disabled:text-ink-faint disabled:bg-transparent",
   danger:
-    "bg-red text-white hover:bg-red-deep active:bg-red-deep disabled:bg-red/40 disabled:text-white/70",
+    "bg-red text-white hover:brightness-110 active:brightness-95 disabled:bg-red/40 disabled:text-white/70",
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: "h-9 px-4 text-sm gap-2",
-  md: "h-11 px-5 text-base gap-2",
-  lg: "h-14 px-7 text-lg gap-2.5",
+  sm: "min-h-10 px-4 text-sm gap-2",
+  md: "min-h-11 px-5 text-base gap-2",
+  lg: "min-h-14 px-7 text-lg gap-2.5",
 };
 
 export function Button({

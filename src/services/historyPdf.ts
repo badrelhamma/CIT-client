@@ -1,5 +1,4 @@
-import { jsPDF } from "jspdf";
-import autoTable, { type Styles } from "jspdf-autotable";
+import type { Styles } from "jspdf-autotable";
 import { formatPk } from "./location";
 import type { HistoryEvent } from "@/types";
 
@@ -23,18 +22,19 @@ const PAGE_H = 297;
 const MARGIN = 14;
 const BOTTOM = 20;
 
+type Doc = import("jspdf").jsPDF;
+
 function hexToRgb(hex: string): [number, number, number] {
-  const value = hex.replace("#", "");
+  const value = (hex ?? "#000000").replace("#", "");
   const int = Number.parseInt(value, 16);
   return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
 }
 
-/** Caractères non encodables en WinAnsi (emojis, flèches, symboles…) rendus par la police standard. */
 const PDF_UNSUPPORTED_CHARS =
   /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2300}-\u{23FF}\u{20E3}\u{00A9}\u{00AE}\u{2122}\u{FE0F}\u{200D}\u{200B}]/gu;
 
 function sanitizeMessage(text: string): string {
-  return text
+  return (text ?? "")
     .replace(PDF_UNSUPPORTED_CHARS, "")
     .replace(/\*+/g, "")
     .replace(/[ \t]{2,}/g, " ")
@@ -140,7 +140,7 @@ function groupEntries(
   return result;
 }
 
-function renderReportHeader(doc: jsPDF): void {
+function renderReportHeader(doc: Doc): void {
   const pageW = doc.internal.pageSize.getWidth();
   doc.setFillColor(...ADM_BLUE);
   doc.rect(0, 0, pageW, 24, "F");
@@ -167,7 +167,7 @@ function renderReportHeader(doc: jsPDF): void {
 }
 
 function renderGroupTitle(
-  doc: jsPDF,
+  doc: Doc,
   y: number,
   label: string,
   count: number,
@@ -188,7 +188,8 @@ function renderGroupTitle(
 }
 
 function renderGroup(
-  doc: jsPDF,
+  doc: Doc,
+  autoTable: (doc: Doc, opts: never) => void,
   y: number,
   group: { label: string; entries: HistoryEvent[] },
   ctx: HistoryPdfContext,
@@ -251,19 +252,22 @@ function renderGroup(
     columnStyles,
     head: [head],
     body: body as never[][],
-    didDrawPage: () => undefined,
-  });
+  } as never);
 
   return (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
     .finalY;
 }
 
-export function exportHistoryPdf(
+export async function exportHistoryPdf(
   entries: HistoryEvent[],
   mode: PdfGroupMode,
   ctx: HistoryPdfContext,
-): void {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+): Promise<void> {
+  const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
+  const doc = new jsPDF({ unit: "mm", format: "a4" }) as Doc;
   renderReportHeader(doc);
 
   const groups = groupEntries(entries, mode);
@@ -277,23 +281,32 @@ export function exportHistoryPdf(
       doc.addPage();
       y = 24;
     }
-    y = renderGroup(doc, y, group, ctx, { showAxe, showTime });
+    y = renderGroup(doc, autoTable as never, y, group, ctx, { showAxe, showTime });
     y += 7;
   }
 
   const pageW = doc.internal.pageSize.getWidth();
-  y = PAGE_H - 12;
-  doc.setDrawColor(...LINE);
-  doc.setLineWidth(0.3);
-  doc.line(MARGIN, y - 6, pageW - MARGIN, y - 6);
-  doc.setTextColor(...SOFT);
-  doc.setFontSize(7.5);
-  doc.text(
-    `CIT · Historique des événements (${entries.length})`,
-    pageW / 2,
-    y,
-    { align: "center" },
-  );
+  const generatedAt = formatDateTime(new Date().toISOString());
+  const total = doc.getNumberOfPages();
+  for (let i = 1; i <= total; i += 1) {
+    doc.setPage(i);
+    doc.setDrawColor(...LINE);
+    doc.setLineWidth(0.3);
+    doc.line(MARGIN, PAGE_H - 16, pageW - MARGIN, PAGE_H - 16);
+    doc.setTextColor(...SOFT);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text("Confidentiel — Usage interne CIT · ADM", MARGIN, PAGE_H - 11.5);
+    doc.text(
+      `CIT · Historique des événements (${entries.length}) · Généré le ${generatedAt}`,
+      pageW / 2,
+      PAGE_H - 11.5,
+      { align: "center" },
+    );
+    doc.text(`Page ${i} / ${total}`, pageW - MARGIN, PAGE_H - 11.5, {
+      align: "right",
+    });
+  }
 
   doc.save(`historique-${mode}.pdf`);
 }

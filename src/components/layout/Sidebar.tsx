@@ -37,9 +37,9 @@ export function Sidebar({ items, active, onNavigate }: SidebarProps) {
           }
           aria-expanded={hasChildren ? isOpen : undefined}
           aria-current={isActive ? "page" : undefined}
-          className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors duration-150 ${
+          className={`pressable flex w-full cursor-pointer items-center gap-3 rounded-full px-3 py-2.5 text-sm font-semibold transition-colors duration-[180ms] ${
             isActive
-              ? "tint-fill"
+              ? "ig-gradient text-white shadow-[0_8px_24px_rgba(225,48,108,.35)]"
               : "text-ink-soft hover:bg-card-2 hover:text-ink"
           }`}
         >
@@ -64,7 +64,9 @@ export function Sidebar({ items, active, onNavigate }: SidebarProps) {
           {badge !== undefined && badge > 0 && (
             <span
               className={`inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums ${
-                isActive ? "bg-adm-600 text-white" : "bg-adm-100 text-adm-700"
+                isActive
+                  ? "bg-white/25 text-white"
+                  : "bg-adm-100 text-adm-700"
               }`}
             >
               {badge}
@@ -82,9 +84,9 @@ export function Sidebar({ items, active, onNavigate }: SidebarProps) {
                   type="button"
                   onClick={() => onNavigate(child.id)}
                   aria-current={childActive ? "page" : undefined}
-                  className={`flex w-full cursor-pointer items-center rounded-xl px-3 py-2 text-sm font-semibold transition-colors duration-150 ${
+                  className={`flex w-full cursor-pointer items-center rounded-full px-3 py-2 text-sm font-semibold transition-colors duration-[180ms] ${
                     childActive
-                      ? "tint-fill"
+                      ? "ig-gradient text-white"
                       : "text-ink-soft hover:bg-card-2 hover:text-ink"
                   }`}
                 >

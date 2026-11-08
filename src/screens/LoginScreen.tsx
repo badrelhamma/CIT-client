@@ -1,13 +1,16 @@
-import { useEffect, useState, type FormEvent, type SVGProps } from "react";
+import { Suspense, lazy, useEffect, useState, type FormEvent, type SVGProps } from "react";
 import { Button } from "@/components/base/Button";
 import { Field } from "@/components/base/Field";
+
+const Aurora = lazy(() => import("@/components/reactbits/Aurora/Aurora"));
+const BlurText = lazy(() => import("@/components/reactbits/BlurText/BlurText"));
 import { API_BASE_URL, apiUrl } from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError, api } from "@/services/api";
 import { ADM_EMAIL_DOMAIN, isAdmEmail } from "@/services/email";
 
 const inputClass =
-  "h-12 w-full rounded-[var(--radius-field)] border border-line-soft bg-paper text-[15px] text-ink transition-colors placeholder:text-ink-faint hover:border-ink-faint/50 focus:border-tint focus:bg-card focus:ring-4 focus:ring-tint/10 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60";
+  "h-12 w-full rounded-full border border-line bg-card-2 px-4 text-[15px] text-ink placeholder:text-ink-faint transition-colors duration-[180ms] hover:border-ig-border-strong focus:border-ig-pink focus:shadow-[var(--ig-ring)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-60";
 
 function UserIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -99,7 +102,9 @@ function Brand() {
       <img
         src="/logo-cit.png"
         alt="Logo CIT"
-        className="size-24 shrink-0 rounded-2xl object-contain"
+        width={96}
+        height={96}
+        className="size-24 shrink-0 rounded-[22%] bg-black object-cover"
       />
       <div>
         <p className="font-display text-lg leading-none tracking-tight text-white">
@@ -124,7 +129,24 @@ function LoginBackdrop() {
         alt=""
         className="absolute inset-0 size-full object-cover object-[center_55%]"
       />
-      <div className="absolute inset-0 bg-black/35" />
+      <div className="absolute inset-0 bg-black/55" />
+      <Suspense fallback={null}>
+        <Aurora
+          colorStops={["#833ab4", "#e1306c", "#f77737", "#fcaf45"]}
+          amplitude={0.9}
+          blend={0.5}
+          speed={0.55}
+          height={0.55}
+          glow={0.45}
+          brightness={0.85}
+          layers={2}
+          direction="bottom"
+          mouseInteraction={false}
+          opacity={0.38}
+          className="absolute inset-x-0 bottom-0 h-1/2"
+        />
+      </Suspense>
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
     </div>
   );
 }
@@ -225,11 +247,23 @@ export function LoginScreen() {
           <img
             src="/logo-cit.png"
             alt="Logo CIT"
-            className="size-48 rounded-[2rem] object-contain shadow-2xl shadow-ig-purple/20 xl:size-56"
+            width={224}
+            height={224}
+            className="size-48 rounded-[22%] bg-black object-cover shadow-[0_8px_40px_rgba(0,0,0,0.45)] xl:size-56"
           />
-          <h2 className="mt-7 font-display text-4xl font-extrabold tracking-tight xl:text-5xl">
-            CIT
-          </h2>
+          <Suspense fallback={<span className="mt-7 font-display text-4xl font-extrabold tracking-tight text-white xl:text-5xl">CIT</span>}>
+            <BlurText
+              text="CIT"
+              className="mt-7 font-display text-4xl font-extrabold tracking-tight text-white xl:text-5xl"
+              animateBy="letters"
+              direction="top"
+              trigger="load"
+              effect="blur"
+              blur={8}
+              distance={24}
+              delay={40}
+            />
+          </Suspense>
           <p className="mt-3 text-base text-white/75">
             Centre d'information trafic
           </p>
@@ -252,7 +286,7 @@ export function LoginScreen() {
 
       <section className="relative z-10 isolate flex min-h-screen flex-col overflow-hidden">
         <div className="relative z-10 flex flex-1 items-center justify-center px-5 py-10 sm:px-8">
-          <div className="w-full max-w-[420px] rounded-xl border border-ig-purple/50 bg-[#091131]/95 p-6 shadow-2xl shadow-black/30 sm:p-8">
+          <div className="w-full max-w-[420px] rounded-[var(--ig-radius-md)] border border-line bg-card p-6 shadow-[var(--ig-shadow-elevated)] sm:p-8">
             <div className="mb-9 lg:hidden">
               <Brand />
             </div>
@@ -260,7 +294,7 @@ export function LoginScreen() {
             {mode === "forgot" ? (
               resetSent ? (
                 <div>
-                  <div className="flex size-12 items-center justify-center  bg-ok/10 text-ok">
+                  <div className="flex size-12 items-center justify-center rounded-full bg-ok/15 text-ok">
                     <CheckIcon className="size-6" />
                   </div>
                   <h1 className="mt-6 font-display text-3xl tracking-tight text-ink">
@@ -332,7 +366,7 @@ export function LoginScreen() {
                     {resetError && (
                       <div
                         role="alert"
-                        className="flex items-start gap-2.5  border border-red/25 bg-red/5 px-3.5 py-3 text-sm font-medium text-red-deep"
+                        className="flex items-start gap-2.5 rounded-[var(--ig-radius-md)] border border-red/25 bg-red/5 px-3.5 py-3 text-sm font-medium text-red-deep"
                       >
                         <AlertIcon className="mt-0.5 size-4 shrink-0" />
                         <span>{resetError}</span>
@@ -424,7 +458,7 @@ export function LoginScreen() {
                       <button
                         type="button"
                         onClick={() => setShowPassword((value) => !value)}
-                        className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center rounded-r-xl text-ink-faint transition-colors hover:text-adm-700"
+                        className="absolute inset-y-0 right-0 flex w-11 cursor-pointer items-center justify-center rounded-r-full text-ink-faint transition-colors hover:text-ig-pink"
                         aria-label={
                           showPassword
                             ? "Masquer le mot de passe"
@@ -457,7 +491,7 @@ export function LoginScreen() {
                   {visibleError && (
                     <div
                       role="alert"
-                      className="flex items-start gap-2.5  border border-red/25 bg-red/5 px-3.5 py-3 text-sm font-medium text-red-deep"
+                      className="flex items-start gap-2.5 rounded-[var(--ig-radius-md)] border border-red/25 bg-red/5 px-3.5 py-3 text-sm font-medium text-red-deep"
                     >
                       <AlertIcon className="mt-0.5 size-4 shrink-0" />
                       <span>{visibleError}</span>
@@ -474,7 +508,7 @@ export function LoginScreen() {
                   </Button>
                 </form>
 
-                <div className="mt-8 flex items-start gap-2.5  bg-paper px-3.5 py-3 text-[11px] leading-relaxed text-ink-faint">
+                <div className="mt-8 flex items-start gap-2.5 rounded-[var(--ig-radius-md)] bg-card-2 px-3.5 py-3 text-[11px] leading-relaxed text-ink-faint">
                   <ShieldIcon className="mt-0.5 size-4 shrink-0" />
                   <p>
                     Accès réservé aux personnels habilités. Ne partagez jamais

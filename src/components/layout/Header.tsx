@@ -9,7 +9,7 @@ function formatKm(total: number): string {
 }
 
 function initials(name: string): string {
-  return name
+  return (name ?? "")
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -26,8 +26,8 @@ function HeaderClock() {
   }, []);
 
   return (
-    <span className="material-regular inline-flex items-center gap-2 rounded-full border border-line-soft px-3.5 py-1.5 text-xs font-bold text-ink tabular-nums shadow-sm">
-      <span aria-hidden="true" className="size-1.5 rounded-full bg-ok" />
+    <span className="material-regular tabular-nums inline-flex items-center gap-1.5 rounded-full border border-line-soft px-2.5 py-1.5 text-xs font-bold whitespace-nowrap text-ink shadow-sm sm:px-3.5">
+      <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-ok" />
       {now.toLocaleTimeString("fr-FR", {
         hour: "2-digit",
         minute: "2-digit",
@@ -54,36 +54,37 @@ export function Header() {
   }
 
   return (
-    <header className="glass-bar sticky top-0 z-30">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
-          <div
-            aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-line bg-card-2"
-          >
-            <span className="font-display text-[13px] font-extrabold tracking-[0.08em] text-white">
-              CIT
-            </span>
-          </div>
+    <header className="glass-bar sticky top-0 z-30 max-w-full overflow-x-hidden">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-6 sm:py-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <img
+            src="/logo-cit.png"
+            alt="Logo CIT"
+            width={40}
+            height={40}
+            className="size-9 shrink-0 rounded-[22%] object-cover shadow-[0_2px_10px_rgba(0,0,0,0.25)] sm:size-10"
+          />
           <div className="min-w-0">
-            <h1 className="font-display text-xl leading-none text-ink">
+            <h1 className="font-display text-lg leading-none text-ink sm:text-xl">
               CIT
             </h1>
-            <p className="mt-1 truncate text-xs text-ink-faint tabular-nums">
+            <p className="mt-1 hidden truncate text-xs text-ink-faint tabular-nums sm:block">
               ADM · {axes} axes · {stats ? formatKm(stats.totalKm) : "–"} km ·{" "}
               {stats ? stats.landmarks : "–"} repères
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {user && (
-            <div className="flex items-center gap-1.5 border-l border-line-soft pl-2">
-              <span
-                aria-hidden="true"
-                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-adm-100 text-xs font-bold text-adm-800"
-              >
-                {initials(user.name)}
-              </span>
+            <div className="flex items-center gap-1.5 border-l border-line-soft pl-1.5 sm:pl-2">
+              <div className="ig-story shrink-0">
+                <span
+                  aria-hidden="true"
+                  className="flex size-8 items-center justify-center rounded-full bg-card-2 text-xs font-bold text-ink"
+                >
+                  {initials(user.name)}
+                </span>
+              </div>
               <div className="hidden max-w-36 text-right lg:block">
                 <p className="truncate text-xs font-bold text-ink">
                   {user.name}

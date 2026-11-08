@@ -84,7 +84,7 @@ export function PkRangeSlider({
         <div className="absolute inset-x-0 h-1.5 rounded-full bg-line" />
 
         <div
-          className="absolute h-1.5 rounded-full bg-adm-600"
+          className="ig-gradient absolute h-1.5 rounded-full"
           style={{
             left: `${valueToPct(fromKm)}%`,
             width: `${valueToPct(toKm) - valueToPct(fromKm)}%`,
@@ -98,7 +98,7 @@ export function PkRangeSlider({
             e.stopPropagation();
             setDragging("from");
           }}
-          className="absolute top-1/2 z-10 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-adm-600 shadow-md transition-shadow hover:shadow-lg active:shadow-xl touch-none"
+          className="ig-gradient absolute top-1/2 z-10 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[var(--ig-shadow-elevated)] touch-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ig-pink"
           style={{ left: `${valueToPct(fromKm)}%` }}
         />
 
@@ -109,7 +109,7 @@ export function PkRangeSlider({
             e.stopPropagation();
             setDragging("to");
           }}
-          className="absolute top-1/2 z-10 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-adm-600 shadow-md transition-shadow hover:shadow-lg active:shadow-xl touch-none"
+          className="ig-gradient absolute top-1/2 z-10 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[var(--ig-shadow-elevated)] touch-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ig-pink"
           style={{ left: `${valueToPct(toKm)}%` }}
         />
       </div>

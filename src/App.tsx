@@ -1,19 +1,45 @@
+import { Suspense, lazy } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { LoadingState } from "@/components/base/LoadingState";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { EventProvider } from "@/contexts/EventContext";
 import { ToastProvider } from "@/contexts/ToastContext";
-import { AdminScreen } from "@/screens/AdminScreen";
-import { CompteRenduScreen } from "@/screens/CompteRenduScreen";
-import { CriticiteScreen } from "@/screens/CriticiteScreen";
-import { EventScreen } from "@/screens/EventScreen";
-import { HistoryScreen } from "@/screens/HistoryScreen";
 import { LoginScreen } from "@/screens/LoginScreen";
-import { NetworkScreen } from "@/screens/NetworkScreen";
-import { RepertoireScreen } from "@/screens/RepertoireScreen";
-import { TmdScreen } from "@/screens/TmdScreen";
 import type { ScreenId } from "@/types";
+
+const AdminScreen = lazy(() =>
+  import("@/screens/AdminScreen").then((m) => ({ default: m.AdminScreen })),
+);
+const CompteRenduScreen = lazy(() =>
+  import("@/screens/CompteRenduScreen").then((m) => ({
+    default: m.CompteRenduScreen,
+  })),
+);
+const CriticiteScreen = lazy(() =>
+  import("@/screens/CriticiteScreen").then((m) => ({
+    default: m.CriticiteScreen,
+  })),
+);
+const EventScreen = lazy(() =>
+  import("@/screens/EventScreen").then((m) => ({ default: m.EventScreen })),
+);
+const HistoryScreen = lazy(() =>
+  import("@/screens/HistoryScreen").then((m) => ({ default: m.HistoryScreen })),
+);
+const NetworkScreen = lazy(() =>
+  import("@/screens/NetworkScreen").then((m) => ({
+    default: m.NetworkScreen,
+  })),
+);
+const RepertoireScreen = lazy(() =>
+  import("@/screens/RepertoireScreen").then((m) => ({
+    default: m.RepertoireScreen,
+  })),
+);
+const TmdScreen = lazy(() =>
+  import("@/screens/TmdScreen").then((m) => ({ default: m.TmdScreen })),
+);
 
 function renderScreen(screen: ScreenId) {
   switch (screen) {
@@ -60,7 +86,19 @@ function AuthGate() {
   return (
     <DataProvider>
       <EventProvider>
-        <AppShell>{(screen) => renderScreen(screen)}</AppShell>
+        <AppShell>
+          {(screen) => (
+            <Suspense
+              fallback={
+                <div className="flex min-h-[40vh] items-center justify-center">
+                  <LoadingState label="Chargement…" />
+                </div>
+              }
+            >
+              {renderScreen(screen)}
+            </Suspense>
+          )}
+        </AppShell>
       </EventProvider>
     </DataProvider>
   );

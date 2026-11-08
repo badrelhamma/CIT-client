@@ -368,7 +368,7 @@ export function EventScreen() {
     }
   }
 
-  function handlePdf() {
+  async function handlePdf() {
     if (bilanOpts.vehiclesMissing) {
       notify(
         "Sélectionnez au moins un véhicule avant l'export du PDF.",
@@ -386,51 +386,55 @@ export function EventScreen() {
       searchedPk === null
     )
       return;
-    exportBilanPdf({
-      refCode: savedRef ?? "SANS-REF",
-      at: new Date().toISOString(),
-      highwayId: highway.id,
-      highwayName: highway.name,
-      pk: formatPk(searchedPk),
-      direction: `${direction} · ${formatPkKm(searchedPk)} km`,
-      colorLabel: color.label,
-      colorHex: color.hex,
-      admMessage: persistedMessage ?? "",
-      bilanMessage,
-      typeLabel: bilanOpts.bilanLabel,
-      lanes: bilanOpts.laneLabels,
-      impacts: bilanOpts.impactLabel
-        ? [
-            ...(bilanOpts.trafficJamMeters > 0
-              ? [bilanOpts.impactLabel, `${bilanOpts.trafficJamMeters} m`]
-              : [bilanOpts.impactLabel]),
-          ]
-        : [],
-      damages: bilanOpts.damageLabels,
-      actors:
-        bilanOpts.actorLabels.length > 0
+    try {
+      await exportBilanPdf({
+        refCode: savedRef ?? "SANS-REF",
+        at: new Date().toISOString(),
+        highwayId: highway.id,
+        highwayName: highway.name,
+        pk: formatPk(searchedPk),
+        direction: `${direction} · ${formatPkKm(searchedPk)} km`,
+        colorLabel: color.label,
+        colorHex: color.hex,
+        admMessage: persistedMessage ?? "",
+        bilanMessage,
+        typeLabel: bilanOpts.bilanLabel,
+        lanes: bilanOpts.laneLabels,
+        impacts: bilanOpts.impactLabel
           ? [
-              bilanOpts.actorLabels.join(", ") +
-                (bilanOpts.actionStatusLabel
-                  ? ` ${bilanOpts.actionStatusLabel}`
-                  : ""),
+              ...(bilanOpts.trafficJamMeters > 0
+                ? [bilanOpts.impactLabel, `${bilanOpts.trafficJamMeters} m`]
+                : [bilanOpts.impactLabel]),
             ]
           : [],
-      statusLabel: status.label,
-      victimesLabel: bilanOpts.hasCorporel
-        ? (() => {
-            const parts: string[] = [];
-            if (bilanOpts.victimes.bl > 0) parts.push(`${bilanOpts.victimes.bl} BL`);
-            if (bilanOpts.victimes.bg > 0) parts.push(`${bilanOpts.victimes.bg} BG`);
-            if (bilanOpts.victimes.tues > 0)
-              parts.push(
-                `${bilanOpts.victimes.tues} Tué${bilanOpts.victimes.tues > 1 ? "s" : ""}`,
-              );
-            return parts.length > 0 ? parts.join(" · ") : null;
-          })()
-        : null,
-    });
-    notify("Bilan exporté au format PDF.", "ok");
+        damages: bilanOpts.damageLabels,
+        actors:
+          bilanOpts.actorLabels.length > 0
+            ? [
+                bilanOpts.actorLabels.join(", ") +
+                  (bilanOpts.actionStatusLabel
+                    ? ` ${bilanOpts.actionStatusLabel}`
+                    : ""),
+              ]
+            : [],
+        statusLabel: status.label,
+        victimesLabel: bilanOpts.hasCorporel
+          ? (() => {
+              const parts: string[] = [];
+              if (bilanOpts.victimes.bl > 0) parts.push(`${bilanOpts.victimes.bl} BL`);
+              if (bilanOpts.victimes.bg > 0) parts.push(`${bilanOpts.victimes.bg} BG`);
+              if (bilanOpts.victimes.tues > 0)
+                parts.push(
+                  `${bilanOpts.victimes.tues} Tué${bilanOpts.victimes.tues > 1 ? "s" : ""}`,
+                );
+              return parts.length > 0 ? parts.join(" · ") : null;
+            })()
+          : null,
+      });
+      notify("Bilan exporté au format PDF.", "ok");
+    } catch {
+      notify("Export PDF impossible.", "error");
+    }
   }
 
   const isConfirmer = eventState === "confirmer";

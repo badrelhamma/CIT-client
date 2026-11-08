@@ -1,0 +1,14 @@
+{
+  "name": "CIT — Centre d'information trafic",
+  "short_name": "CIT",
+  "description": "Exploitation du réseau autoroutier ADM. Localisation d'événements par PK, bilans et historique.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#e1306c",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/logo-cit.png", "sizes": "500x500", "type": "image/png", "purpose": "any" }
+  ]
+}

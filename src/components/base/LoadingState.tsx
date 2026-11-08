@@ -4,7 +4,7 @@ interface LoadingStateProps {
 
 export function LoadingState({ label }: LoadingStateProps) {
   return (
-    <div className="flex items-center justify-center gap-2.5 px-6 py-8 text-ink-soft">
+    <div role="status" className="flex items-center justify-center gap-2.5 px-6 py-8 text-ink-soft">
       <svg
         aria-hidden="true"
         className="size-4 animate-spin text-adm-500"

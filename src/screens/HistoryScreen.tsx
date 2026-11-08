@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
 import { useToast } from "@/contexts/ToastContext";
 import { api } from "@/services/api";
+import { exportEventReportPdf } from "@/services/pdfReportGenerator";
 import { exportHistoryPdf } from "@/services/historyPdf";
 import { exportHistoryExcel } from "@/services/historyExcel";
 import { formatPk, formatPkKm } from "@/services/location";
@@ -133,7 +134,7 @@ function IconNormal() {
 }
 
 const ACTION =
-  "inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-adm-50 hover:text-adm-600";
+  "inline-flex min-h-11 min-w-11 size-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-adm-50 hover:text-adm-600";
 
 interface HistoryScreenProps {
   initialTab?: HistoryFeedTab;
@@ -277,13 +278,17 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
     [catalogs, highways],
   );
 
-  function handleExportPdf() {
+  async function handleExportPdf() {
     if (filtered.length === 0) {
       notify("Aucun événement à exporter.", "info");
       return;
     }
-    exportHistoryPdf(filtered, "date-axe", reportCtx);
-    notify("Historique exporté au format PDF.", "ok");
+    try {
+      await exportHistoryPdf(filtered, "date-axe", reportCtx);
+      notify("Historique exporté au format PDF.", "ok");
+    } catch {
+      notify("Export PDF impossible.", "error");
+    }
   }
 
   async function handleExportExcel() {
@@ -296,6 +301,46 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
       notify("Historique exporté au format Excel.", "ok");
     } catch {
       notify("Export Excel impossible.", "error");
+    }
+  }
+
+  async function handleSinglePdf(e: HistoryEvent) {
+    try {
+      const mods = repliesByRef[e.refCode] ?? [];
+      await exportEventReportPdf({
+        refCode: e.refCode,
+        at: e.at,
+        status: e.statusId === "cloture" ? "cloture" : e.resolved ? "resolu" : "encours",
+        statusLabel:
+          e.statusId === "cloture" ? "Clôture" : e.resolved ? "Résolu" : "En cours",
+        highwayId: e.highway,
+        highwayName: highwayOf(e.highway)?.name,
+        pk: formatPk(e.pk),
+        direction: e.direction ?? "—",
+        location: `${e.highway} · PK ${formatPkKm(e.pk)}`,
+        detection: e.sourceIds?.length ? [sourceLabels(e)] : [],
+        typeLabel: typeLabel(e),
+        colorLabel: colorLabel(e.color),
+        colorHex: colorHex(e.color),
+        timeline: [
+          {
+            at: e.at,
+            kind: "alerte",
+            label: "Alerte initiale",
+            message: e.message,
+          },
+          ...mods.map((m) => ({
+            at: (m as { at: string }).at,
+            kind: "message" as const,
+            label: "Message / bilan",
+            message: (m as { message: string }).message,
+          })),
+        ],
+        admMessage: e.message,
+      });
+      notify(`Compte rendu ${e.refCode} exporté.`, "ok");
+    } catch {
+      notify("Export PDF impossible.", "error");
     }
   }
 
@@ -550,6 +595,7 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
                       onReply={() => setReplyTarget(e)}
                       onToggleResolved={() => void toggleResolved(e)}
                       onNormal={() => void handleNormal(e)}
+                      onPdf={() => void handleSinglePdf(e)}
                       onCopy={() => {
                         void copyText(e.message).then(() =>
                           notify("Message copié.", "ok"),
@@ -645,6 +691,7 @@ interface HistoryCardProps {
   onReply: () => void;
   onToggleResolved: () => void;
   onNormal: () => void;
+  onPdf: () => void;
   onCopy: () => void;
   typeLabel: string;
   sourceLabel: string;
@@ -669,6 +716,7 @@ function HistoryCard({
   onReply,
   onToggleResolved,
   onNormal,
+  onPdf,
   onCopy,
   typeLabel: typeText,
   sourceLabel,
@@ -682,7 +730,7 @@ function HistoryCard({
   const detailCount = mods.length + (e.comments?.length ?? 0);
   return (
     <li
-      className="break-inside-avoid rounded-lg border border-line bg-card p-3.5 shadow-sm"
+      className="min-w-0 break-inside-avoid overflow-hidden rounded-lg border border-line bg-card p-3.5 shadow-sm sm:p-4"
       style={{
         borderLeftWidth: 4,
         borderLeftColor: colorHex,
@@ -728,11 +776,11 @@ function HistoryCard({
       )}
 
       {/* Actions */}
-      <div className="mt-2.5 flex flex-wrap items-center gap-1">
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
         <button
           type="button"
           onClick={onToggleDetail}
-          className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors ${
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition-colors ${
             detailOpen
               ? "bg-adm-50 text-adm-700"
               : "text-ink-soft hover:bg-adm-50 hover:text-adm-600"
@@ -792,11 +840,20 @@ function HistoryCard({
         >
           <IconWhatsApp />
         </a>
+        <button
+          type="button"
+          title="Exporter le compte rendu PDF"
+          aria-label="Exporter le compte rendu PDF"
+          className={ACTION}
+          onClick={onPdf}
+        >
+          <IconDownload />
+        </button>
         {canEdit && e.statusId !== "cloture" && (
           <button
             type="button"
             title="Retour à la normale"
-            className="ml-1 inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-ok/30 bg-ok/10 text-ok transition-colors hover:bg-ok hover:text-white"
+            className="ml-1 inline-flex min-h-11 min-w-11 size-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-ok/30 bg-ok/10 text-ok transition-colors hover:bg-ok hover:text-white"
             onClick={onNormal}
           >
             <IconNormal />

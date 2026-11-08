@@ -302,11 +302,15 @@ export function CompteRenduScreen({
     }
   }
 
-  function telechargerPdf() {
-    exportCompteRenduPdf(state);
-    addToSaved();
-    setState(freshState());
-    setMsg("PDF généré et enregistré dans les listes. Formulaire réinitialisé.");
+  async function telechargerPdf() {
+    try {
+      await exportCompteRenduPdf(state);
+      addToSaved();
+      setState(freshState());
+      setMsg("PDF généré et enregistré dans les listes. Formulaire réinitialisé.");
+    } catch {
+      setMsg("Génération du PDF impossible.");
+    }
   }
 
   function reprendre(saved: CrState) {
@@ -870,7 +874,7 @@ export function CompteRenduScreen({
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => exportCompteRenduPdf(s)}
+                        onClick={() => void exportCompteRenduPdf(s).catch(() => setMsg("Génération du PDF impossible."))}
                       >
                         PDF
                       </Button>

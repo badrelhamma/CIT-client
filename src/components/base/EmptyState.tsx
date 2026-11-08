@@ -5,7 +5,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ title, description }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-line bg-card/60 px-6 py-10 text-center">
+    <div className="flex flex-col items-center justify-center gap-1.5 rounded-[var(--ig-radius-md)] border border-dashed border-line bg-card/60 px-6 py-10 text-center">
       <svg
         aria-hidden="true"
         className="size-8 text-ink-faint/60"

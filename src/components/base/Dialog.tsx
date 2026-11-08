@@ -8,8 +8,7 @@ interface DialogProps {
   maxWidth?: string;
 }
 
-/** Feuille modale façon iOS : overlay assombri, panneau central défilable,
- *  fermeture par croix, Échap ou clic sur le fond. */
+/** Feuille modale façon Instagram — surface sombre #121212, radius 12px. */
 export function Dialog({
   title,
   onClose,
@@ -42,15 +41,15 @@ export function Dialog({
         className="absolute inset-0 cursor-default bg-[var(--overlay)] backdrop-blur-[6px]"
       />
       <div
-        className={`relative w-full ${maxWidth} max-h-[85dvh] overflow-y-auto rounded-[var(--radius-card)] border border-line-soft bg-card shadow-2xl`}
+        className={`ig-scroll relative w-full ${maxWidth} max-h-[85dvh] overflow-y-auto rounded-[var(--ig-radius-md)] border border-line bg-card shadow-[var(--ig-shadow-elevated)]`}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-line-soft px-5 py-3">
-          <h3 className="font-display text-lg text-ink">{title}</h3>
+        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
+          <h3 className="font-display text-lg font-semibold text-ink">{title}</h3>
           <button
             type="button"
             title="Fermer"
             onClick={onClose}
-            className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-adm-50 hover:text-adm-600"
+            className="inline-flex size-9 cursor-pointer items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-card-2 hover:text-ink"
           >
             <svg
               aria-hidden="true"

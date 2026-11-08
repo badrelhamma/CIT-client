@@ -55,11 +55,11 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-paper">
       <Header />
       <div className="mx-auto flex w-full max-w-7xl flex-1 items-stretch">
         <Sidebar items={navItems} active={screen} onNavigate={navigate} />
-        <main className="min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-6 md:pb-8">
+        <main className="min-w-0 flex-1 px-3 pt-4 pb-28 sm:px-6 sm:pt-6 md:pb-8">
           {navItems.length === 0 ? (
             <div className="mx-auto mt-16 max-w-md rounded-[var(--radius-card)] border border-line bg-card p-8 text-center shadow-[0_1px_2px_rgba(0,0,0,.08)]">
               <p className="font-display text-2xl text-ink">

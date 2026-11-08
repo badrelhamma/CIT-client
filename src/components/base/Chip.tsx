@@ -28,13 +28,13 @@ export function Chip({
   title,
 }: ChipProps) {
   const interactive = onClick !== undefined;
-  const base = `inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-base font-medium whitespace-nowrap transition-colors duration-150 ${toneClasses[tone]}`;
+  const base = `inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-base font-medium whitespace-nowrap transition-colors duration-[180ms] ${toneClasses[tone]}`;
   const state = selected
-    ? "border-transparent bg-tint text-white"
+    ? "ig-gradient border-transparent text-white shadow-[0_8px_24px_rgba(225,48,108,.35)]"
     : active
-      ? "border-transparent bg-tint text-white"
+      ? "ig-gradient border-transparent text-white shadow-[0_8px_24px_rgba(225,48,108,.35)]"
       : interactive
-        ? "cursor-pointer hover:border-adm-300 hover:bg-card-2"
+        ? "cursor-pointer hover:border-ig-pink/50 hover:bg-card-2"
         : "";
 
   return (

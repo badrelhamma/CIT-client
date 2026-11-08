@@ -22,5 +22,24 @@ export default defineConfig({
   build: {
     target: "es2022",
     sourcemap: false,
+    chunkSizeWarningLimit: 600,
+    reportCompressedSize: true,
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/jspdf") || id.includes("node_modules/jspdf-autotable"))
+            return "pdf-vendor";
+          if (id.includes("node_modules/exceljs"))
+            return "excel-vendor";
+          if (id.includes("node_modules/motion"))
+            return "motion-vendor";
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/scheduler"))
+            return "react-vendor";
+          if (id.includes("node_modules"))
+            return "vendor";
+        },
+      },
+    },
   },
 });

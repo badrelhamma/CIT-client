@@ -105,26 +105,26 @@ body {
 
 .glass-regular,
 .glass-dock {
-  background: var(--card);
+  background: color-mix(in srgb, var(--card) 82%, transparent);
   border: 1px solid var(--line);
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  box-shadow: var(--ig-shadow-elevated);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
 }
 
 .glass-bar {
-  background: var(--card);
+  background: color-mix(in srgb, var(--card) 78%, transparent);
   border-bottom: 1px solid var(--line);
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  box-shadow: var(--ig-shadow-card);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
 }
 
 .material-thin,
 .material-regular {
-  background: var(--card);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .material-thick {
@@ -181,9 +181,57 @@ body {
 }
 
 .pressable {
-  transition: transform 120ms ease, opacity 120ms ease;
+  transition: transform var(--ig-fast), opacity var(--ig-fast), filter var(--ig-base);
 }
 .pressable:active {
   transform: scale(0.97);
   opacity: 0.85;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+img,
+svg,
+video,
+iframe,
+table {
+  max-width: 100%;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ig-border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--ig-border-strong);
+  border-radius: var(--ig-radius-pill);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+input,
+select,
+textarea {
+  transition: border-color var(--ig-base), box-shadow var(--ig-base), background-color var(--ig-base);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--ig-pink);
+  box-shadow: var(--ig-ring);
 }

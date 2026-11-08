@@ -130,13 +130,39 @@
 
 .ig-ring {
   background-image: var(--ig-gradient-story);
-  padding: 2px;
+  padding: 3px;
   border-radius: var(--ig-radius-pill);
 }
 
 .ig-ring > * {
   border-radius: inherit;
   border: 2px solid var(--ig-surface);
+}
+
+.ig-story {
+  background-image: var(--ig-gradient-story);
+  padding: 3px;
+  border-radius: var(--ig-radius-pill);
+}
+
+.ig-story > * {
+  border-radius: inherit;
+  border: 2px solid var(--ig-bg);
+}
+
+.ig-gradient-border {
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--ig-surface), var(--ig-surface)) padding-box,
+    var(--ig-gradient) border-box;
+}
+
+.ig-title {
+  background-image: var(--ig-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .ig-card {
@@ -162,11 +188,12 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: filter var(--ig-fast), transform var(--ig-fast);
+  transition: filter var(--ig-base), transform var(--ig-fast), box-shadow var(--ig-fast);
 }
 
 .ig-btn:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.08);
+  box-shadow: var(--ig-shadow-elevated);
 }
 
 .ig-btn:active {

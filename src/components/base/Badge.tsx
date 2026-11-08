@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 type Tone = "adm" | "ok" | "warn" | "danger" | "neutral";
 
 const toneClasses: Record<Tone, string> = {
-  adm: "bg-adm-100 text-adm-800",
+  adm: "tint-fill",
   ok: "bg-ok/15 text-ok",
   warn: "bg-orange/15 text-orange",
   danger: "bg-red/15 text-red-deep",

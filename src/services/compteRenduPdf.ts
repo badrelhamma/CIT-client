@@ -1,6 +1,3 @@
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-
 export interface CompteRenduEquip {
   label: string;
   statut: string;
@@ -39,41 +36,56 @@ const INK: [number, number, number] = [23, 33, 43];
 const SOFT: [number, number, number] = [102, 120, 137];
 const LINE: [number, number, number] = [213, 224, 232];
 
-const or = (v: string, fallback = "—") => (v && v.trim() ? v.trim() : fallback);
+const or = (v: string, fallback = "—") =>
+  v && String(v).trim() ? String(v).trim() : fallback;
 
-export function exportCompteRenduPdf(r: CompteRenduExport): void {
+export async function exportCompteRenduPdf(r: CompteRenduExport): Promise<void> {
+  const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
+
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
   const margin = 14;
   const right = pageW - margin;
+  const generatedAt = new Date().toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   doc.setFillColor(...NAV);
-  doc.rect(0, 0, pageW, 26, "F");
+  doc.rect(0, 0, pageW, 28, "F");
   doc.setFillColor(...BLUE);
-  doc.rect(0, 26, pageW, 1.2, "F");
+  doc.rect(0, 28, pageW, 1.2, "F");
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text("COMPTE RENDU DE POSTE DES MANAGERS", margin, 12);
+  doc.setFontSize(13);
+  doc.text("COMPTE RENDU DE POSTE DES MANAGERS", margin, 11.5);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
-  doc.text("Centre Info Trafic — CIT", margin, 18);
   doc.setFontSize(9);
-  doc.text(`Date : ${or(r.date)}`, right, 12, { align: "right" });
-  doc.text(`Poste : ${or(r.poste)}`, right, 18, { align: "right" });
+  doc.text("Centre Info Trafic — CIT", margin, 17);
+  doc.text(`Généré le ${generatedAt}`, margin, 22.5);
+  doc.setFontSize(9);
+  doc.text(`Date : ${or(r.date)}`, right, 11.5, { align: "right" });
+  doc.text(`Poste : ${or(r.poste)}`, right, 17, { align: "right" });
 
-  let y = 34;
+  let y = 36;
 
   function section(title: string) {
-    y += 6;
+    y += 5;
     doc.setFillColor(...NAV);
     doc.rect(margin, y, pageW - 2 * margin, 8, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.text(title, margin + 3, y + 5.6);
-    y += 12;
+    doc.setFontSize(9);
+    doc.text(title, margin + 3, y + 5.4);
+    y += 11;
   }
 
   function kvTable(rows: [string, string][]) {
@@ -81,17 +93,18 @@ export function exportCompteRenduPdf(r: CompteRenduExport): void {
       startY: y,
       margin: { left: margin, right: margin },
       theme: "grid",
-      styles: { fontSize: 9, cellPadding: 2.2, textColor: INK, lineColor: LINE },
+      styles: { fontSize: 8.5, cellPadding: 2, textColor: INK, lineColor: LINE },
       headStyles: { fillColor: NAV, textColor: 255, fontStyle: "bold" },
       columnStyles: { 0: { cellWidth: 48, fontStyle: "bold", textColor: SOFT } },
       head: [["Rubrique", "Contenu"]],
       body: rows.map(([k, v]) => [k, v]),
     });
-    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-      .finalY + 4;
-    if (y > 250) {
+    y =
+      (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
+        .finalY + 4;
+    if (y > pageH - 30) {
       doc.addPage();
-      y = 20;
+      y = 18;
     }
   }
 
@@ -125,7 +138,7 @@ export function exportCompteRenduPdf(r: CompteRenduExport): void {
     startY: y,
     margin: { left: margin, right: margin },
     theme: "grid",
-    styles: { fontSize: 9, cellPadding: 2.2, textColor: INK, lineColor: LINE },
+    styles: { fontSize: 8.5, cellPadding: 2, textColor: INK, lineColor: LINE },
     headStyles: { fillColor: NAV, textColor: 255, fontStyle: "bold" },
     columnStyles: {
       0: { cellWidth: 62, fontStyle: "bold", textColor: SOFT },
@@ -137,11 +150,12 @@ export function exportCompteRenduPdf(r: CompteRenduExport): void {
       : [{ label: "", statut: "", obs: "" }]
     ).map((e) => [or(e.label), or(e.statut), or(e.obs)]),
   });
-  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-    .finalY + 4;
-  if (y > 250) {
+  y =
+    (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
+      .finalY + 4;
+  if (y > pageH - 30) {
     doc.addPage();
-    y = 20;
+    y = 18;
   }
 
   section("4. Reporting et consignes");
@@ -153,22 +167,21 @@ export function exportCompteRenduPdf(r: CompteRenduExport): void {
     ["Signé par", or(r.signature)],
   ]);
 
-  if (y > 265) {
-    doc.addPage();
-    y = 20;
+  const total = doc.getNumberOfPages();
+  for (let i = 1; i <= total; i += 1) {
+    doc.setPage(i);
+    doc.setDrawColor(...LINE);
+    doc.setLineWidth(0.3);
+    doc.line(margin, pageH - 16, right, pageH - 16);
+    doc.setTextColor(...SOFT);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text("Confidentiel — Usage interne CIT · ADM", margin, pageH - 11.5);
+    doc.text(`Généré le ${generatedAt}`, pageW / 2, pageH - 11.5, {
+      align: "center",
+    });
+    doc.text(`Page ${i} / ${total}`, right, pageH - 11.5, { align: "right" });
   }
-
-  doc.setDrawColor(...LINE);
-  doc.setLineWidth(0.3);
-  doc.line(margin, 282, right, 282);
-  doc.setTextColor(...SOFT);
-  doc.setFontSize(7.5);
-  doc.text(
-    "Document généré automatiquement · CIT · Compte rendu",
-    pageW / 2,
-    287,
-    { align: "center" },
-  );
 
   const safe = (r.date || "sans-date").replace(/[^0-9-]/g, "");
   const manager = (r.signature || r.sortant || "Manager")

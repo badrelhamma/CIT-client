@@ -64,7 +64,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             role="status"
-            className="pointer-events-auto flex items-center gap-2 rounded-lg border border-line bg-card px-3 py-2.5 text-sm font-medium text-ink shadow-lg"
+            className="pointer-events-auto flex items-center gap-2 rounded-[var(--ig-radius-md)] border border-line bg-card px-3 py-2.5 text-sm font-medium text-ink shadow-[var(--ig-shadow-elevated)]"
           >
             <span
               aria-hidden="true"

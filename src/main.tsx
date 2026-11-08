@@ -46,7 +46,7 @@ class ErrorBoundary extends Component<
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-6 cursor-pointer rounded-lg bg-adm-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-adm-800"
+            className="ig-gradient pressable mt-6 cursor-pointer rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
           >
             Recharger l'application
           </button>
