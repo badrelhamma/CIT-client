@@ -113,78 +113,19 @@ function Brand() {
   );
 }
 
-function RoadBackdrop() {
+function LoginBackdrop() {
   return (
-    <svg
+    <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 h-full w-full"
-      viewBox="0 0 640 900"
-      preserveAspectRatio="xMidYMax slice"
+      className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      <defs>
-        <linearGradient id="cit-night-sky" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#03091f" />
-          <stop offset="0.58" stopColor="#071747" />
-          <stop offset="1" stopColor="#100b32" />
-        </linearGradient>
-        <linearGradient id="cit-road" x1="0" y1="0" x2="0.5" y2="1">
-          <stop offset="0" stopColor="#121538" />
-          <stop offset="1" stopColor="#07091e" />
-        </linearGradient>
-      </defs>
-      <rect width="640" height="900" fill="url(#cit-night-sky)" />
-      <ellipse cx="320" cy="465" rx="440" ry="250" fill="#8324a9" opacity=".18" />
-      <path
-        d="m0 440 83-47 60 24 83-54 76 41 78-49 74 47 83-54 103 51v260H0Z"
-        fill="#101437"
+      <img
+        src="/cit-background.png"
+        alt=""
+        className="absolute inset-0 size-full object-cover object-[center_55%]"
       />
-      <path
-        d="m0 500 76-36 74 22 74-44 82 48 78-45 82 49 81-43 93 50v240H0Z"
-        fill="#090f2d"
-      />
-      <path d="M0 530h640" stroke="#833ab4" strokeWidth="2" opacity=".3" />
-      <path d="M82 454v112m-1-110 20 8" stroke="#68718f" strokeWidth="3" />
-      <circle cx="81" cy="452" r="7" fill="#fd1d1d" />
-      <circle cx="81" cy="452" r="18" fill="#f77737" opacity=".2" />
-      <path d="M533 412v160" stroke="#68718f" strokeWidth="4" />
-      <rect
-        x="484"
-        y="354"
-        width="100"
-        height="90"
-        rx="8"
-        fill="#09285e"
-        stroke="#bac8ff"
-        strokeWidth="3"
-        transform="rotate(-5 534 399)"
-      />
-      <path
-        d="M534 370v54m-22-33 22-2 22 2m-38 12 38-2m-39 14 39-2"
-        stroke="#edf2ff"
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-      <path
-        d="m0 700 206-117q83-47 114-112 31 65 114 112l206 117v200H0Z"
-        fill="url(#cit-road)"
-      />
-      <path
-        d="m0 700 206-117q83-47 114-112m320 229L434 583q-83-47-114-112"
-        fill="none"
-        stroke="#833ab4"
-        strokeWidth="3"
-        opacity=".65"
-      />
-      <path
-        d="M322 492q-5 51-38 90m-14 17q-33 38-73 70m-17 17q-38 43-76 80"
-        fill="none"
-        stroke="#c13584"
-        strokeWidth="6"
-        strokeDasharray="25 20"
-        opacity=".55"
-      />
-      <path d="M110 601 0 665m530-64 110 64" stroke="#fd1d1d" strokeWidth="5" opacity=".5" />
-    </svg>
+      <div className="absolute inset-0 bg-black/35" />
+    </div>
   );
 }
 
@@ -277,10 +218,9 @@ export function LoginScreen() {
   const visibleError = error ?? authError;
 
   return (
-    <main className="grid min-h-screen bg-paper lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="relative hidden min-h-screen overflow-hidden border-r border-line bg-black p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-        <RoadBackdrop />
-
+    <main className="relative isolate grid min-h-screen overflow-hidden bg-paper lg:grid-cols-[1.1fr_0.9fr]">
+      <LoginBackdrop />
+      <section className="relative z-10 hidden min-h-screen overflow-hidden border-r border-line p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
         <div className="relative flex flex-1 flex-col items-center justify-center text-center">
           <img
             src="/logo-cit.png"
@@ -310,10 +250,7 @@ export function LoginScreen() {
         </div>
       </section>
 
-      <section className="relative isolate flex min-h-screen flex-col overflow-hidden bg-[#050a20] lg:bg-paper">
-        <div className="absolute inset-0 lg:hidden">
-          <RoadBackdrop />
-        </div>
+      <section className="relative z-10 isolate flex min-h-screen flex-col overflow-hidden">
         <div className="relative z-10 flex flex-1 items-center justify-center px-5 py-10 sm:px-8">
           <div className="w-full max-w-[420px] rounded-xl border border-ig-purple/50 bg-[#091131]/95 p-6 shadow-2xl shadow-black/30 sm:p-8">
             <div className="mb-9 lg:hidden">
