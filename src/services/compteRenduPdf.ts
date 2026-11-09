@@ -30,14 +30,26 @@ export interface CompteRenduExport {
   signature: string;
 }
 
-const NAV: [number, number, number] = [18, 59, 89];
-const BLUE: [number, number, number] = [22, 113, 163];
-const INK: [number, number, number] = [23, 33, 43];
-const SOFT: [number, number, number] = [102, 120, 137];
-const LINE: [number, number, number] = [213, 224, 232];
+const NAV: [number, number, number] = [15, 23, 42];
+const ROSE: [number, number, number] = [225, 29, 72];
+const INK: [number, number, number] = [15, 23, 42];
+const SOFT: [number, number, number] = [100, 116, 139];
+const LINE: [number, number, number] = [226, 232, 240];
+const GREEN: [number, number, number] = [22, 163, 74];
+const AMBER: [number, number, number] = [234, 88, 12];
+const RED: [number, number, number] = [220, 38, 38];
+const REDBG: [number, number, number] = [254, 242, 242];
 
-const or = (v: string, fallback = "—") =>
+const or = (v: string | undefined | null, fallback = "—") =>
   v && String(v).trim() ? String(v).trim() : fallback;
+
+function statutColor(statut: string): [number, number, number] {
+  const s = (statut ?? "").trim().toLowerCase();
+  if (s === "normale") return GREEN;
+  if (s === "perturbé" || s === "perturbe" || s === "anomalie") return AMBER;
+  if (s === "hors service") return RED;
+  return SOFT;
+}
 
 export async function exportCompteRenduPdf(r: CompteRenduExport): Promise<void> {
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([
@@ -48,7 +60,7 @@ export async function exportCompteRenduPdf(r: CompteRenduExport): Promise<void> 
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
-  const margin = 14;
+  const margin = 12;
   const right = pageW - margin;
   const generatedAt = new Date().toLocaleString("fr-FR", {
     day: "2-digit",
@@ -59,113 +71,162 @@ export async function exportCompteRenduPdf(r: CompteRenduExport): Promise<void> 
   });
 
   doc.setFillColor(...NAV);
-  doc.rect(0, 0, pageW, 28, "F");
-  doc.setFillColor(...BLUE);
-  doc.rect(0, 28, pageW, 1.2, "F");
+  doc.rect(0, 0, pageW, 22, "F");
+  doc.setFillColor(...ROSE);
+  doc.rect(0, 22, pageW, 1.4, "F");
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text("COMPTE RENDU DE POSTE DES MANAGERS", margin, 11.5);
+  doc.setFontSize(11.5);
+  doc.text("COMPTE RENDU DE POSTE DES MANAGERS", margin, 9);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.text("Centre Info Trafic — CIT", margin, 17);
-  doc.text(`Généré le ${generatedAt}`, margin, 22.5);
-  doc.setFontSize(9);
-  doc.text(`Date : ${or(r.date)}`, right, 11.5, { align: "right" });
-  doc.text(`Poste : ${or(r.poste)}`, right, 17, { align: "right" });
+  doc.setFontSize(7.5);
+  doc.setTextColor(226, 232, 240);
+  doc.text("Centre Info Trafic — CIT | Autoroutes du Maroc", margin, 14);
+  doc.setFontSize(6.5);
+  doc.text(`Date : ${or(r.date)}  ·  Généré le ${generatedAt}  ·  Poste : ${or(r.poste)}`, right, 9, { align: "right" });
+  doc.text("Confidentiel — Usage interne CIT ADM", right, 14, { align: "right" });
 
-  let y = 36;
+  let y = 27;
 
   function section(title: string) {
-    y += 5;
-    doc.setFillColor(...NAV);
-    doc.rect(margin, y, pageW - 2 * margin, 8, "F");
-    doc.setTextColor(255, 255, 255);
+    y += 3;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text(title, margin + 3, y + 5.4);
-    y += 11;
+    doc.setFontSize(8);
+    doc.setTextColor(...INK);
+    doc.text(title.toUpperCase(), margin, y);
+    y += 2.5;
+    doc.setDrawColor(...LINE);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, right, y);
+    y += 3.5;
   }
 
-  function kvTable(rows: [string, string][]) {
-    autoTable(doc, {
-      startY: y,
-      margin: { left: margin, right: margin },
-      theme: "grid",
-      styles: { fontSize: 8.5, cellPadding: 2, textColor: INK, lineColor: LINE },
-      headStyles: { fillColor: NAV, textColor: 255, fontStyle: "bold" },
-      columnStyles: { 0: { cellWidth: 48, fontStyle: "bold", textColor: SOFT } },
-      head: [["Rubrique", "Contenu"]],
-      body: rows.map(([k, v]) => [k, v]),
+  function kpis() {
+    const boxes: [string, string][] = [
+      ["ACCIDENTS", or(r.accidents, "0")],
+      ["BOUCHONS", or(r.bouchons, "0")],
+      ["INCENDIES", or(r.incendies, "0")],
+      ["PMV", or(r.pmv, "0")],
+      ["TICKETS", or(r.tickets, "0")],
+      ["AUTRES", or(r.autres, "0")],
+    ];
+    const totalW = pageW - margin * 2;
+    const gap = 2;
+    const w = (totalW - gap * (boxes.length - 1)) / boxes.length;
+    const h = 14;
+    boxes.forEach(([label, value], i) => {
+      const x = margin + i * (w + gap);
+      const n = Number(value) || 0;
+      const isAlert = n > 0 && ["ACCIDENTS", "BOUCHONS", "INCENDIES"].includes(label);
+      doc.setFillColor(isAlert ? REDBG[0] : 248, isAlert ? REDBG[1] : 250, isAlert ? REDBG[2] : 252);
+      doc.setDrawColor(isAlert ? 254 : LINE[0], isAlert ? 202 : LINE[1], isAlert ? 202 : LINE[2]);
+      doc.roundedRect(x, y, w, h, 1.5, 1.5, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(isAlert ? 153 : 15, isAlert ? 27 : 23, isAlert ? 27 : 42);
+      doc.text(value, x + w / 2, y + 6.5, { align: "center" });
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(5.5);
+      doc.setTextColor(...SOFT);
+      doc.text(label, x + w / 2, y + 11, { align: "center" });
     });
-    y =
-      (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-        .finalY + 4;
-    if (y > pageH - 30) {
-      doc.addPage();
-      y = 18;
-    }
+    y += h + 2;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(...SOFT);
+    const line1 = `Validés : ${or(r.valides, "0")}  ·  Dévalidés : ${or(r.devalides, "0")}  ·  Faits marquants : ${or(r.details)}`;
+    const lines = doc.splitTextToSize(line1, totalW);
+    doc.text(lines, margin, y + 2);
+    y += lines.length * 3.4 + 3;
   }
 
-  section("1. Ouverture du poste");
-  kvTable([
-    ["Date", or(r.date)],
-    ["Poste", or(r.poste)],
-    ["Heure début de poste", or(r.heureDebut)],
-    ["Heure fin de poste", or(r.heureFin)],
-    ["Manager sortant", or(r.sortant)],
-    ["Manager entrant", or(r.entrant)],
-    ["Situation trafic", or(r.trafic)],
-    ["Météo", or(r.meteo)],
-  ]);
-
-  section("2. Événements et accidents");
-  kvTable([
-    ["Accidents", or(r.accidents, "0")],
-    ["Bouchons / Ralentissements", or(r.bouchons, "0")],
-    ["Incendies", or(r.incendies, "0")],
-    ["Autres événements", or(r.autres, "0")],
-    ["Détails des événements importants", or(r.details)],
-    ["Messages PMV publiés", or(r.pmv, "0")],
-    ["Tickets créés", or(r.tickets, "0")],
-    ["Accidents validés", or(r.valides, "0")],
-    ["Accidents dévalidés", or(r.devalides, "0")],
-  ]);
-
-  section("3. Passation des équipements du CIT");
+  section("1 · Ouverture de poste & relève");
   autoTable(doc, {
     startY: y,
     margin: { left: margin, right: margin },
     theme: "grid",
-    styles: { fontSize: 8.5, cellPadding: 2, textColor: INK, lineColor: LINE },
-    headStyles: { fillColor: NAV, textColor: 255, fontStyle: "bold" },
-    columnStyles: {
-      0: { cellWidth: 62, fontStyle: "bold", textColor: SOFT },
-      1: { cellWidth: 30, halign: "center" },
-    },
-    head: [["Équipement", "État", "Observation / anomalie"]],
-    body: (r.equipements.length
-      ? r.equipements
-      : [{ label: "", statut: "", obs: "" }]
-    ).map((e) => [or(e.label), or(e.statut), or(e.obs)]),
+    styles: { fontSize: 7, cellPadding: 1.6, textColor: INK, lineColor: LINE, overflow: "linebreak" },
+    headStyles: { fillColor: NAV, textColor: 255, fontStyle: "bold", fontSize: 6.5 },
+    columnStyles: { 0: { cellWidth: 42, fontStyle: "bold", textColor: SOFT } },
+    head: [["Rubrique", "Détail"]],
+    body: [
+      ["Heure début / fin", `${or(r.heureDebut)} → ${or(r.heureFin)}`],
+      ["Manager sortant / entrant", `${or(r.sortant)}  →  ${or(r.entrant)}`],
+      ["Situation trafic / météo", `${or(r.trafic)}  ·  ${or(r.meteo)}`],
+      ["Date / poste", `${or(r.date)}  ·  ${or(r.poste)}`],
+    ],
   });
-  y =
-    (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-      .finalY + 4;
-  if (y > pageH - 30) {
+  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 1;
+
+  section("2 · Chiffres clés & événements");
+  kpis();
+
+  section("3 · Passation & état des équipements du CIT");
+  const eqRows = (r.equipements?.length ? r.equipements : []).map((e) => {
+    return [
+      or(e.label),
+      `${or(e.statut)}${e.obs ? ` — ${or(e.obs)}` : ""}`,
+    ] as [string, string];
+  });
+  autoTable(doc, {
+    startY: y,
+    margin: { left: margin, right: margin },
+    theme: "grid",
+    styles: { fontSize: 6.8, cellPadding: 1.4, textColor: INK, lineColor: LINE, overflow: "linebreak" },
+    headStyles: { fillColor: NAV, textColor: 255, fontStyle: "bold", fontSize: 6.5 },
+    columnStyles: {
+      0: { cellWidth: 78, fontStyle: "bold", textColor: INK },
+      1: {},
+    },
+    head: [["Équipement", "Statut / Observation"]],
+    body: eqRows,
+    didParseCell: (data) => {
+      if (data.section === "body" && data.column.index === 1) {
+        const eq = r.equipements[data.row.index];
+        if (eq) {
+          (data.cell.styles as { textColor: [number, number, number]; fontStyle: string }).textColor =
+            statutColor(eq.statut);
+          (data.cell.styles as { fontStyle: string }).fontStyle = "bold";
+        }
+      }
+    },
+  });
+  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 1;
+
+  section("4 · Consignes, reporting & validation");
+  const colW = (pageW - margin * 2 - 2) / 2;
+  const boxH = 20;
+  doc.setDrawColor(...LINE);
+  doc.roundedRect(margin, y, colW, boxH, 1.5, 1.5, "S");
+  doc.roundedRect(margin + colW + 2, y, colW, boxH, 1.5, 1.5, "S");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6);
+  doc.setTextColor(...SOFT);
+  doc.text("SENSIBLES & CONSIGNES", margin + 2, y + 4);
+  doc.text("DIFFICULTÉS & REPORTING", margin + colW + 4, y + 4);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.5);
+  doc.setTextColor(...INK);
+  const leftText = `Sensibles : ${or(r.sensibles)} | Consignes : ${or(r.consignes)}`;
+  const rightText = `Difficultés : ${or(r.difficultes)} | Reporting : ${or(r.reporting)}`;
+  doc.text(doc.splitTextToSize(leftText, colW - 4), margin + 2, y + 7.5);
+  doc.text(doc.splitTextToSize(rightText, colW - 4), margin + colW + 4, y + 7.5);
+  y += boxH + 3;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7);
+  doc.text(
+    `Signé électroniquement par : ${or(r.signature)} — ${or(r.date)} · ${or(r.heureDebut)} → ${or(r.heureFin)}`,
+    right,
+    y,
+    { align: "right" },
+  );
+  y += 5;
+
+  if (y > pageH - 26) {
     doc.addPage();
     y = 18;
   }
-
-  section("4. Reporting et consignes");
-  kvTable([
-    ["Reporting transmis", or(r.reporting)],
-    ["Points sensibles à surveiller", or(r.sensibles)],
-    ["Consignes pour le prochain poste", or(r.consignes)],
-    ["Difficultés / actions proposées", or(r.difficultes)],
-    ["Signé par", or(r.signature)],
-  ]);
 
   const total = doc.getNumberOfPages();
   for (let i = 1; i <= total; i += 1) {
@@ -174,13 +235,12 @@ export async function exportCompteRenduPdf(r: CompteRenduExport): Promise<void> 
     doc.setLineWidth(0.3);
     doc.line(margin, pageH - 16, right, pageH - 16);
     doc.setTextColor(...SOFT);
-    doc.setFontSize(7);
+    doc.setFontSize(6.5);
     doc.setFont("helvetica", "normal");
-    doc.text("Confidentiel — Usage interne CIT · ADM", margin, pageH - 11.5);
-    doc.text(`Généré le ${generatedAt}`, pageW / 2, pageH - 11.5, {
+    doc.text("Confidentiel — Usage interne CIT ADM", pageW / 2, pageH - 8, {
       align: "center",
     });
-    doc.text(`Page ${i} / ${total}`, right, pageH - 11.5, { align: "right" });
+    doc.text(`Page ${i} / ${total}`, right, pageH - 8, { align: "right" });
   }
 
   const safe = (r.date || "sans-date").replace(/[^0-9-]/g, "");

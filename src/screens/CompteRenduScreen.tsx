@@ -14,6 +14,7 @@ import { api } from "@/services/api";
 import { canAddCompteRendu } from "@/services/access";
 import { filterCompteRendusForUser } from "@/services/compteRenduOwnership";
 import { inputCls, selectCls } from "./repertoireUi";
+import { ReportView } from "@/components/compteRendu/ReportView";
 import {
   exportCompteRenduPdf,
   type CompteRenduEquip,
@@ -230,46 +231,6 @@ function freshState(): CrState {
   };
 }
 
-function buildText(s: CrState): string {
-  const L: string[] = [];
-  L.push("COMPTE RENDU DE POSTE DES MANAGERS — CIT");
-  L.push("==========================================");
-  L.push(`DATE : ${s.date}`);
-  L.push(`POSTE : ${s.poste}`);
-  L.push(`HEURE DEBUT : ${s.heureDebut} — FIN : ${s.heureFin}`);
-  L.push(`MANAGER SORTANT : ${s.sortant}`);
-  L.push(`MANAGER ENTRANT : ${s.entrant}`);
-  L.push(`SITUATION TRAFIC : ${s.trafic}`);
-  L.push(`METEO : ${s.meteo}`);
-  L.push("");
-  L.push("ÉVÉNEMENTS ET ACCIDENTS");
-  L.push("=======================");
-  L.push(`accidents : ${s.accidents || "0"}`);
-  L.push(`bouchons (ralentissements) : ${s.bouchons || "0"}`);
-  L.push(`incendies : ${s.incendies || "0"}`);
-  L.push(`autres événements : ${s.autres || "0"}`);
-  L.push("DÉTAILS DES ÉVÉNEMENTS IMPORTANTS :");
-  L.push(s.details || "—");
-  L.push(`PMV publiés : ${s.pmv || "0"} — Tickets créés : ${s.tickets || "0"}`);
-  L.push(`Accidents validés : ${s.valides || "0"} — Dévalidés : ${s.devalides || "0"}`);
-  L.push("");
-  L.push("PASSATION DES ÉQUIPEMENTS DU CIT");
-  L.push("=================================");
-  for (const e of s.equipements) {
-    L.push(`${e.label.toUpperCase()} : ${e.statut || "—"}${e.obs ? " — " + e.obs : ""}`);
-  }
-  L.push("");
-  L.push("REPORTING ET CONSIGNES");
-  L.push("======================");
-  L.push(`Reporting transmis : ${s.reporting || "—"}`);
-  L.push(`Points sensibles : ${s.sensibles || "—"}`);
-  L.push(`Consignes pour le prochain poste : ${s.consignes || "—"}`);
-  L.push(`Difficultés / actions proposées : ${s.difficultes || "—"}`);
-  L.push("");
-  L.push(`SIGNE PAR : ${s.signature || "—"}`);
-  return L.join("\n");
-}
-
 interface CompteRenduScreenProps {
   initialView?: "ajouter" | "liste";
 }
@@ -357,7 +318,6 @@ export function CompteRenduScreen({
     void refreshList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
-  const preview = useMemo(() => buildText(state), [state]);
   const visibleList = useMemo(
     () => filterCompteRendusForUser(savedList, user),
     [savedList, user],
@@ -793,13 +753,11 @@ export function CompteRenduScreen({
           </Card>
         </div>
 
-        <div className="space-y-6 lg:sticky lg:top-24">
-          <Card className="border-t-4 border-t-adm-600">
-            <p className="text-lg font-bold text-adm-700">Aperçu du compte rendu</p>
-            <pre className="mt-3 max-h-[600px] overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-adm-50 p-3 font-mono text-xs leading-relaxed text-ink">
-              {preview}
-            </pre>
-          </Card>
+        <div className="space-y-4 lg:sticky lg:top-24">
+          <p className="text-sm font-bold text-adm-700">Aperçu officiel A4 — identique au PDF</p>
+          <div className="max-h-[720px] overflow-auto pb-1">
+            <ReportView data={state} />
+          </div>
         </div>
       </div>
 
@@ -809,22 +767,11 @@ export function CompteRenduScreen({
               <Button size="sm" variant="secondary" onClick={() => void enregistrer()}>
                 Enregistrer
               </Button>
-              <Button size="sm" variant="secondary" onClick={() => void telechargerPdf()}>
-                <svg
-                  aria-hidden="true"
-                  className="size-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                PDF
+              <Button size="sm" onClick={() => void telechargerPdf()}>
+                Télécharger le PDF officiel
+              </Button>
+              <Button size="sm" variant="secondary" onClick={() => window.print()}>
+                Imprimer
               </Button>
               <Button size="sm" variant="danger" onClick={reinitialiser}>
                 Réinitialiser

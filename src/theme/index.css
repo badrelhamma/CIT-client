@@ -235,3 +235,32 @@ textarea:focus {
   border-color: var(--ig-pink);
   box-shadow: var(--ig-ring);
 }
+
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #cr-report-sheet,
+  #cr-report-sheet * {
+    visibility: visible;
+  }
+  #cr-report-sheet {
+    position: absolute !important;
+    inset: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .cr-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
