@@ -10,6 +10,7 @@ import { Card } from "@/components/base/Card";
 import { Dialog } from "@/components/base/Dialog";
 import { Field } from "@/components/base/Field";
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/services/api";
 import { canAddCompteRendu } from "@/services/access";
 import { filterCompteRendusForUser } from "@/services/compteRenduOwnership";
 import { inputCls, selectCls } from "./repertoireUi";
@@ -83,6 +84,8 @@ interface SavedCr {
   state: CrState;
 }
 
+const MIGRATED_KEY = "cr_manager_cit_migrated";
+
 function makeId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
@@ -107,6 +110,92 @@ function persistList(list: SavedCr[]) {
   } catch {
     /* ignore */
   }
+}
+
+function isMigrated(): boolean {
+  try {
+    return localStorage.getItem(MIGRATED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markMigrated() {
+  try {
+    localStorage.setItem(MIGRATED_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+interface RawReport {
+  id?: string;
+  _id?: string;
+  savedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  ownerId?: string;
+  ownerName?: string;
+  ownerIdentifier?: string;
+  auteur?: {
+    id?: string;
+    nom?: string;
+    name?: string;
+    role?: string;
+    identifier?: string;
+  };
+  datePoste?: string;
+  vacation?: string;
+  remarques?: string;
+  consignes?: string;
+  faitsMarquants?: string;
+  state?: Partial<CrState>;
+}
+
+function unwrapReports(body: unknown): RawReport[] {
+  if (body === null || body === undefined) return [];
+  const list = Array.isArray(body)
+    ? (body as unknown[])
+    : Array.isArray((body as RawReport)?.state)
+      ? []
+      : ((body as { data?: unknown; reports?: unknown; items?: unknown })?.data ??
+        (body as { data?: unknown; reports?: unknown; items?: unknown })?.reports ??
+        (body as { data?: unknown; reports?: unknown; items?: unknown })?.items ??
+        (body as RawReport)) as unknown;
+  return Array.isArray(list) ? (list as RawReport[]) : [];
+}
+
+function stateFromReport(report: RawReport): CrState {
+  const base = freshState();
+  const s = report.state ?? {};
+  const datePoste = report.datePoste ? String(report.datePoste).slice(0, 10) : "";
+  const merged: CrState = {
+    ...base,
+    ...s,
+    date: s.date ?? datePoste ?? base.date,
+    poste: s.poste ?? report.vacation ?? base.poste,
+    details: s.details ?? report.remarques ?? base.details,
+    consignes: s.consignes ?? report.consignes ?? base.consignes,
+    sensibles: s.sensibles ?? report.faitsMarquants ?? base.sensibles,
+  };
+  if (!Array.isArray(merged.equipements) || merged.equipements.length === 0) {
+    merged.equipements = base.equipements;
+  }
+  return merged;
+}
+
+function fromReport(report: RawReport): SavedCr | null {
+  if (!report || typeof report !== "object") return null;
+  const auteur = report.auteur ?? {};
+  const id = report.id ?? report._id ?? makeId();
+  return {
+    id: String(id),
+    savedAt: report.savedAt ?? report.createdAt ?? report.updatedAt ?? new Date().toISOString(),
+    ownerId: report.ownerId ?? auteur.id,
+    ownerName: report.ownerName ?? auteur.nom ?? auteur.name,
+    ownerIdentifier: report.ownerIdentifier ?? auteur.identifier,
+    state: stateFromReport(report),
+  };
 }
 
 function freshState(): CrState {
@@ -199,12 +288,75 @@ export function CompteRenduScreen({
   const { user, isPrincipal } = useAuth();
   const canAdd = canAddCompteRendu(user);
   const [state, setState] = useState<CrState>(freshState);
-  const [savedList, setSavedList] = useState<SavedCr[]>(loadList);
+  const [savedList, setSavedList] = useState<SavedCr[]>([]);
+  const [loadingList, setLoadingList] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [view, setView] = useState<"ajouter" | "liste">(initialView);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState(CR_EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  async function refreshList() {
+    setLoadingList(true);
+    try {
+      const raw = await api.compteRendus();
+      const reports = unwrapReports(raw);
+      const mapped = reports
+        .map(fromReport)
+        .filter((entry): entry is SavedCr => entry !== null);
+      if (mapped.length > 0) {
+        setSavedList(mapped);
+        persistList(mapped);
+        setLoadError(null);
+        return mapped;
+      }
+      if (!isMigrated()) {
+        const local = loadList();
+        const ownLocal = user
+          ? local.filter((entry) => entry.ownerId === user.id)
+          : local;
+        if (ownLocal.length > 0) {
+          let imported = 0;
+          for (const entry of ownLocal) {
+            try {
+              await api.createCompteRendu(entry.state as unknown as Record<string, unknown>);
+              imported += 1;
+            } catch {
+              break;
+            }
+          }
+          markMigrated();
+          if (imported > 0) {
+            const refreshed = unwrapReports(await api.compteRendus())
+              .map(fromReport)
+              .filter((entry): entry is SavedCr => entry !== null);
+            setSavedList(refreshed);
+            persistList(refreshed);
+            setLoadError(null);
+            return refreshed;
+          }
+        }
+        setSavedList(local);
+      } else {
+        setSavedList(loadList());
+      }
+      setLoadError(null);
+      return savedList;
+    } catch {
+      setSavedList(loadList());
+      setLoadError("Serveur inaccessible : liste locale affichée.");
+      return loadList();
+    } finally {
+      setLoadingList(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!user) return;
+    void refreshList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
   const preview = useMemo(() => buildText(state), [state]);
   const visibleList = useMemo(
     () => filterCompteRendusForUser(savedList, user),
@@ -266,48 +418,50 @@ export function CompteRenduScreen({
     }));
   }
 
-  function addToSaved() {
-    setSavedList((prev) => {
-      const latest = prev[0];
-      if (
-        latest &&
-        latest.ownerId === user?.id &&
-        JSON.stringify(latest.state) === JSON.stringify(state)
-      ) {
-        return prev;
-      }
-      const next: SavedCr[] = [
-        {
-          id: makeId(),
-          savedAt: new Date().toISOString(),
-          ownerId: user?.id,
-          ownerName: user?.name,
-          ownerIdentifier: user?.identifier,
-          state,
-        },
-        ...prev,
-      ];
-      persistList(next);
-      return next;
-    });
+  async function persistToServer(nextState: CrState): Promise<boolean> {
+    try {
+      await api.createCompteRendu(nextState as unknown as Record<string, unknown>);
+      await refreshList();
+      return true;
+    } catch {
+      const fallback: SavedCr = {
+        id: makeId(),
+        savedAt: new Date().toISOString(),
+        ownerId: user?.id,
+        ownerName: user?.name,
+        ownerIdentifier: user?.identifier,
+        state: nextState,
+      };
+      setSavedList((prev) => {
+        const next = [fallback, ...prev];
+        persistList(next);
+        return next;
+      });
+      return false;
+    }
   }
 
-  function enregistrer() {
-    try {
-      addToSaved();
-      setState(freshState());
-      setMsg("Compte rendu enregistré dans les listes. Formulaire réinitialisé.");
-    } catch {
-      setMsg("Enregistrement local impossible.");
-    }
+  async function enregistrer() {
+    const ok = await persistToServer(state);
+    setState(freshState());
+    setMsg(
+      ok
+        ? "Compte rendu enregistré et synchronisé. Formulaire réinitialisé."
+        : "Serveur inaccessible : compte rendu enregistré en local uniquement.",
+    );
+    setView("liste");
   }
 
   async function telechargerPdf() {
     try {
       await exportCompteRenduPdf(state);
-      addToSaved();
+      const ok = await persistToServer(state);
       setState(freshState());
-      setMsg("PDF généré et enregistré dans les listes. Formulaire réinitialisé.");
+      setMsg(
+        ok
+          ? "PDF généré et enregistré dans les listes. Formulaire réinitialisé."
+          : "PDF généré (enregistrement local uniquement).",
+      );
     } catch {
       setMsg("Génération du PDF impossible.");
     }
@@ -320,13 +474,18 @@ export function CompteRenduScreen({
     setMsg("Compte rendu chargé dans le formulaire.");
   }
 
-  function supprimerCr(id: string) {
+  async function supprimerCr(id: string) {
     if (!window.confirm("Supprimer ce compte rendu de la liste ?")) return;
-    setSavedList((prev) => {
-      const next = prev.filter((e) => e.id !== id);
-      persistList(next);
-      return next;
-    });
+    try {
+      await api.deleteCompteRendu(id);
+      await refreshList();
+    } catch {
+      setSavedList((prev) => {
+        const next = prev.filter((e) => e.id !== id);
+        persistList(next);
+        return next;
+      });
+    }
   }
 
   function reinitialiser() {
@@ -647,10 +806,10 @@ export function CompteRenduScreen({
       <Card className="mt-6 border-t-4 border-t-adm-600">
             <p className="text-lg font-bold text-adm-700">Actions</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button size="sm" variant="secondary" onClick={enregistrer}>
+              <Button size="sm" variant="secondary" onClick={() => void enregistrer()}>
                 Enregistrer
               </Button>
-              <Button size="sm" variant="secondary" onClick={telechargerPdf}>
+              <Button size="sm" variant="secondary" onClick={() => void telechargerPdf()}>
                 <svg
                   aria-hidden="true"
                   className="size-4"
@@ -819,8 +978,16 @@ export function CompteRenduScreen({
         </Dialog>
       )}
 
+      {loadError && (
+        <p className="mt-2 rounded-lg border border-red/30 bg-red/5 px-3 py-2 text-xs font-medium text-red-deep">
+          {loadError} <button type="button" className="ml-2 font-bold underline" onClick={() => void refreshList()}>Réessayer</button>
+        </p>
+      )}
+
       <Card className="mt-3 border-t-4 border-t-adm-600">
-        {filteredList.length === 0 ? (
+        {loadingList ? (
+          <p className="py-4 text-center text-sm text-ink-soft">Chargement des comptes rendus…</p>
+        ) : filteredList.length === 0 ? (
           <p className="py-4 text-base text-ink-soft">
             Aucun compte rendu ne correspond aux filtres. Essayez de modifier votre recherche ou réinitialisez les filtres.
           </p>
@@ -881,7 +1048,7 @@ export function CompteRenduScreen({
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => supprimerCr(entry.id)}
+                        onClick={() => void supprimerCr(entry.id)}
                         className="text-red hover:bg-red/10"
                       >
                         Supprimer

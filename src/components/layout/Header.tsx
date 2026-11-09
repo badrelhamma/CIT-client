@@ -58,7 +58,7 @@ export function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-6 sm:py-2.5">
         <div className="flex min-w-0 items-center gap-2.5">
           <img
-            src="/logo-cit.png"
+            src="/LogoCIT.png"
             alt="Logo CIT"
             width={40}
             height={40}

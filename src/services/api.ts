@@ -380,4 +380,24 @@ export const api = {
     const suffix = qs.size ? "?" + qs.toString() : "";
     return request<DirectoryEntry[]>("/api/directory/search" + suffix);
   },
+
+  compteRendus(): Promise<unknown[]> {
+    return request<unknown>("/api/reports").then((body) =>
+      toArray<unknown>(body, ["data", "reports", "items", "compteRendus"]),
+    );
+  },
+
+  createCompteRendu(state: Record<string, unknown>): Promise<unknown> {
+    return request<unknown>("/api/reports", {
+      method: "POST",
+      body: JSON.stringify({ state }),
+    });
+  },
+
+  deleteCompteRendu(id: string): Promise<{ deleted: true }> {
+    return request<{ deleted: true }>(
+      `/api/reports/${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    );
+  },
 };

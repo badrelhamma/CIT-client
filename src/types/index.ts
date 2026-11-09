@@ -202,6 +202,10 @@ export type PermissionKey =
   | "history:comment"
   | "history:edit"
   | "history:delete"
+  | "history:resolve"
+  | "history:share"
+  | "history:copy"
+  | "history:report"
   | "tmd:write"
   | "criticite:write"
   | "repertoire:write";
@@ -285,4 +289,35 @@ export interface DirectoryEntry {
   metier: string;
   troncon: string;
   zones: DirectoryZone[];
+}
+
+export interface CompteRenduDoc {
+  id: string;
+  savedAt?: string;
+  ownerId?: string;
+  ownerName?: string;
+  ownerIdentifier?: string;
+  ownerRole?: string;
+  state: Record<string, unknown>;
+}
+
+export interface CrReport {
+  auteur?: {
+    id?: string;
+    nom?: string;
+    name?: string;
+    role?: string;
+    identifier?: string;
+  };
+  datePoste?: string;
+  vacation?: string;
+  remarques?: string;
+  consignes?: string;
+  faitsMarquants?: string;
+  evenements?: { type?: string; count?: string }[];
+  state?: Record<string, unknown>;
+  createdAt?: string;
+  updatedAt?: string;
+  id?: string;
+  _id?: string;
 }

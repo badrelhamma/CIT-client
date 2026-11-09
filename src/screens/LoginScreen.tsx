@@ -100,7 +100,7 @@ function Brand() {
   return (
     <div className="flex flex-col items-center gap-3.5 text-center">
       <img
-        src="/logo-cit.png"
+        src="/LogoCIT.png"
         alt="Logo CIT"
         width={96}
         height={96}
@@ -245,7 +245,7 @@ export function LoginScreen() {
       <section className="relative z-10 hidden min-h-screen overflow-hidden border-r border-line p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
         <div className="relative flex flex-1 flex-col items-center justify-center text-center">
           <img
-            src="/logo-cit.png"
+            src="/LogoCIT.png"
             alt="Logo CIT"
             width={224}
             height={224}

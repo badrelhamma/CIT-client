@@ -151,6 +151,11 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
   } = useData();
   const { hasPermission } = useAuth();
   const canEditHistory = hasPermission("history:edit");
+  const canComment = hasPermission("history:comment");
+  const canResolve = hasPermission("history:resolve");
+  const canShare = hasPermission("history:share");
+  const canCopy = hasPermission("history:copy");
+  const canReport = hasPermission("history:report");
   const { notify } = useToast();
 
   const feedTab = initialTab;
@@ -279,6 +284,10 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
   );
 
   async function handleExportPdf() {
+    if (!canReport) {
+      notify("Génération de bilan non autorisée.", "error");
+      return;
+    }
     if (filtered.length === 0) {
       notify("Aucun événement à exporter.", "info");
       return;
@@ -292,6 +301,10 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
   }
 
   async function handleExportExcel() {
+    if (!canReport) {
+      notify("Génération de bilan non autorisée.", "error");
+      return;
+    }
     if (filtered.length === 0) {
       notify("Aucun événement à exporter.", "info");
       return;
@@ -305,6 +318,10 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
   }
 
   async function handleSinglePdf(e: HistoryEvent) {
+    if (!canReport) {
+      notify("Génération de bilan non autorisée.", "error");
+      return;
+    }
     try {
       const mods = repliesByRef[e.refCode] ?? [];
       await exportEventReportPdf({
@@ -345,6 +362,10 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
   }
 
   async function toggleResolved(e: HistoryEvent) {
+    if (!canResolve) {
+      notify("Résolution non autorisée.", "error");
+      return;
+    }
     try {
       await api.updateHistory(e.id, { resolved: !e.resolved });
       await refreshHistory();
@@ -359,6 +380,10 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
   }
 
   async function handleNormal(e: HistoryEvent) {
+    if (!canResolve) {
+      notify("Retour à la normale non autorisé.", "error");
+      return;
+    }
     if (
       !window.confirm(
         "Retour à la normale ?\nLe statut passera à « Clôture ».",
@@ -508,11 +533,11 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
             <span className="mr-1 text-sm font-semibold text-ink-soft">
               Export
             </span>
-            <Button variant="secondary" size="sm" onClick={handleExportExcel}>
+            <Button variant="secondary" size="sm" onClick={handleExportExcel} disabled={!canReport} title={!canReport ? "Génération de bilan non autorisée" : undefined}>
               <IconDownload />
               Excel (.xlsx)
             </Button>
-            <Button variant="secondary" size="sm" onClick={handleExportPdf}>
+            <Button variant="secondary" size="sm" onClick={handleExportPdf} disabled={!canReport} title={!canReport ? "Génération de bilan non autorisée" : undefined}>
               <IconDownload />
               PDF
             </Button>
@@ -605,8 +630,12 @@ export function HistoryScreen({ initialTab = "tous" }: HistoryScreenProps) {
                       sourceLabel={sourceLabels(e)}
                       colorHex={colorHex(e.color)}
                       highwayName={highwayOf(e.highway)?.name}
-                      canComment={hasPermission("history:comment")}
+                      canComment={canComment}
                       canEdit={canEditHistory}
+                      canResolve={canResolve}
+                      canShare={canShare}
+                      canCopy={canCopy}
+                      canReport={canReport}
                       onSavedComments={refreshHistory}
                      />
                   );
@@ -699,6 +728,10 @@ interface HistoryCardProps {
   highwayName?: string;
   canComment: boolean;
   canEdit: boolean;
+  canResolve: boolean;
+  canShare: boolean;
+  canCopy: boolean;
+  canReport: boolean;
   onSavedComments: () => Promise<void>;
 }
 
@@ -724,6 +757,10 @@ function HistoryCard({
   highwayName,
   canComment,
   canEdit,
+  canResolve,
+  canShare,
+  canCopy,
+  canReport,
   onSavedComments,
 }: HistoryCardProps) {
   const badge = badgeFor(e);
@@ -813,7 +850,7 @@ function HistoryCard({
             )}
           </button>
         )}
-        {canEdit && e.resolved && (
+        {canResolve && e.resolved && (
           <button
             type="button"
             title="Rouvrir"
@@ -823,33 +860,39 @@ function HistoryCard({
             <IconReopen />
           </button>
         )}
-        <button
-          type="button"
-          title="Copier le message"
-          className={ACTION}
-          onClick={onCopy}
-        >
-          <IconCopy />
-        </button>
-        <a
-          href={waShareUrl(e.message)}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Partager sur WhatsApp"
-          className={ACTION}
-        >
-          <IconWhatsApp />
-        </a>
-        <button
-          type="button"
-          title="Exporter le compte rendu PDF"
-          aria-label="Exporter le compte rendu PDF"
-          className={ACTION}
-          onClick={onPdf}
-        >
-          <IconDownload />
-        </button>
-        {canEdit && e.statusId !== "cloture" && (
+        {canCopy && (
+          <button
+            type="button"
+            title="Copier le message"
+            className={ACTION}
+            onClick={onCopy}
+          >
+            <IconCopy />
+          </button>
+        )}
+        {canShare && (
+          <a
+            href={waShareUrl(e.message)}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Partager sur WhatsApp"
+            className={ACTION}
+          >
+            <IconWhatsApp />
+          </a>
+        )}
+        {canReport && (
+          <button
+            type="button"
+            title="Exporter le compte rendu PDF"
+            aria-label="Exporter le compte rendu PDF"
+            className={ACTION}
+            onClick={onPdf}
+          >
+            <IconDownload />
+          </button>
+        )}
+        {canResolve && e.statusId !== "cloture" && (
           <button
             type="button"
             title="Retour à la normale"
