@@ -2,11 +2,16 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/base/Button";
 import { Card } from "@/components/base/Card";
 import { ErrorState } from "@/components/base/ErrorState";
-import { Field } from "@/components/base/Field";
 import { LoadingState } from "@/components/base/LoadingState";
 import { api } from "@/services/api";
-import { normalize, inputCls } from "./repertoireUi";
+import { normalize } from "./repertoireUi";
 import type { TmdEntry } from "@/types";
+
+interface TmdValues {
+  onu: string;
+  description: string;
+  danger: string;
+}
 
 export function TmdScreen() {
   const [entries, setEntries] = useState<TmdEntry[]>([]);
@@ -25,7 +30,7 @@ export function TmdScreen() {
     api
       .tmd()
       .then((data) => {
-        if (alive) setEntries(data);
+        if (alive) setEntries(Array.isArray(data) ? data : []);
       })
       .catch(() => {
         if (alive) setError("Impossible de charger les données TMD.");
@@ -49,25 +54,28 @@ export function TmdScreen() {
     [entries],
   );
 
-  function linkTmd(changedKey: keyof TmdEntry, value: string) {
+  function applyEntry(entry: TmdEntry) {
+    setOnu(entry.onu ?? "");
+    setDescription(entry.description ?? "");
+    setDanger(entry.danger ?? "");
+    setResult(
+      <p>
+        <b>N° ONU :</b> {entry.onu} &nbsp;|&nbsp; <b>Nom :</b>{" "}
+        {entry.description} &nbsp;|&nbsp; <b>Danger :</b> {entry.danger}
+      </p>,
+    );
+  }
+
+  function linkTmd(changedKey: keyof TmdEntry, value: string, next: TmdValues) {
     const q = normalize(value);
     if (!q) {
       setResult(null);
       return;
     }
 
-    const exact = entries.filter((r) => normalize(String(r[changedKey])) === q);
+    const exact = entries.filter((r) => normalize(String(r[changedKey] ?? "")) === q);
     if (exact.length === 1) {
-      const r = exact[0];
-      setOnu(r.onu ?? "");
-      setDescription(r.description ?? "");
-      setDanger(r.danger ?? "");
-      setResult(
-        <p>
-          <b>N° ONU :</b> {r.onu} &nbsp;|&nbsp; <b>Nom :</b> {r.description}{" "}
-          &nbsp;|&nbsp; <b>Danger :</b> {r.danger}
-        </p>,
-      );
+      applyEntry(exact[0]);
       return;
     }
 
@@ -79,13 +87,7 @@ export function TmdScreen() {
       if (sameDesc.size === 1) setDescription(exact[0].description ?? "");
       if (sameDanger.size === 1) setDanger(exact[0].danger ?? "");
       if (sameOnu.size === 1 && sameDesc.size === 1 && sameDanger.size === 1) {
-        setResult(
-          <p>
-            <b>N° ONU :</b> {exact[0].onu} &nbsp;|&nbsp; <b>Nom :</b>{" "}
-            {exact[0].description} &nbsp;|&nbsp; <b>Danger :</b>{" "}
-            {exact[0].danger}
-          </p>,
-        );
+        applyEntry(exact[0]);
       } else {
         setResult(
           <p>
@@ -99,22 +101,13 @@ export function TmdScreen() {
 
     const partial = entries.filter(
       (r) =>
-        (!onu || normalize(r.onu).includes(normalize(onu))) &&
-        (!description ||
-          normalize(r.description).includes(normalize(description))) &&
-        (!danger || normalize(r.danger).includes(normalize(danger))),
+        (!next.onu || normalize(r.onu).includes(normalize(next.onu))) &&
+        (!next.description ||
+          normalize(r.description).includes(normalize(next.description))) &&
+        (!next.danger || normalize(r.danger).includes(normalize(next.danger))),
     );
     if (partial.length === 1) {
-      const r = partial[0];
-      setOnu(r.onu ?? "");
-      setDescription(r.description ?? "");
-      setDanger(r.danger ?? "");
-      setResult(
-        <p>
-          <b>N° ONU :</b> {r.onu} &nbsp;|&nbsp; <b>Nom :</b> {r.description}{" "}
-          &nbsp;|&nbsp; <b>Danger :</b> {r.danger}
-        </p>,
-      );
+      applyEntry(partial[0]);
     } else if (partial.length > 1) {
       setResult(
         <p>
@@ -128,14 +121,16 @@ export function TmdScreen() {
   }
 
   function handleChange(key: keyof TmdEntry, value: string) {
+    const next: TmdValues = { onu, description, danger, [key]: value };
     if (key === "onu") setOnu(value);
     if (key === "description") setDescription(value);
     if (key === "danger") setDanger(value);
+    linkTmd(key, value, next);
   }
 
   function handleBlur(key: keyof TmdEntry) {
     const value = key === "onu" ? onu : key === "description" ? description : danger;
-    linkTmd(key, value);
+    linkTmd(key, value, { onu, description, danger });
   }
 
   function reset() {
@@ -166,37 +161,49 @@ export function TmdScreen() {
 
         {!loading && !error && (
           <>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Field label="N° ONU">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start w-full">
+              <div className="flex flex-col gap-1.5 w-full">
+                <label htmlFor="tmd-onu" className="text-sm font-medium text-slate-300 min-h-[2.5rem] leading-snug">
+                  N° ONU
+                </label>
                 <input
+                  id="tmd-onu"
                   list="tmdOnuList"
                   value={onu}
                   onChange={(e) => handleChange("onu", e.target.value)}
                   onBlur={() => handleBlur("onu")}
                   placeholder="Ex. 1203"
-                  className={inputCls}
+                  className="w-full h-11 px-3 rounded-lg border border-slate-700 bg-slate-900/60 text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                 />
-              </Field>
-              <Field label="Nom et description — 3.1.2">
+              </div>
+              <div className="flex flex-col gap-1.5 w-full">
+                <label htmlFor="tmd-description" className="text-sm font-medium text-slate-300 min-h-[2.5rem] leading-snug">
+                  Nom et description — 3.1.2
+                </label>
                 <input
+                  id="tmd-description"
                   list="tmdDescriptionList"
                   value={description}
                   onChange={(e) => handleChange("description", e.target.value)}
                   onBlur={() => handleBlur("description")}
                   placeholder="Ex. ESSENCE"
-                  className={inputCls}
+                  className="w-full h-11 px-3 rounded-lg border border-slate-700 bg-slate-900/60 text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                 />
-              </Field>
-              <Field label="N° d'identification du danger — 5.3.2.3">
+              </div>
+              <div className="flex flex-col gap-1.5 w-full">
+                <label htmlFor="tmd-danger" className="text-sm font-medium text-slate-300 min-h-[2.5rem] leading-snug">
+                  N° d'identification du danger — 5.3.2.3
+                </label>
                 <input
+                  id="tmd-danger"
                   list="tmdDangerList"
                   value={danger}
                   onChange={(e) => handleChange("danger", e.target.value)}
                   onBlur={() => handleBlur("danger")}
                   placeholder="Ex. 33"
-                  className={inputCls}
+                  className="w-full h-11 px-3 rounded-lg border border-slate-700 bg-slate-900/60 text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                 />
-              </Field>
+              </div>
             </div>
 
             <datalist id="tmdOnuList">

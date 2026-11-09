@@ -229,6 +229,188 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+function asTrimmedString(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+}
+
+/**
+ * Normalise une entrée TMD aux champs canoniques { onu, description, danger }.
+ * Accepte les alias code_onu / nom / danger_id / code_danger, etc.
+ */
+export function normalizeTmdEntry(raw: unknown): TmdEntry | null {
+  if (!raw || typeof raw !== "object") return null;
+  const rec = raw as Record<string, unknown>;
+  const onu = asTrimmedString(
+    rec.onu ?? rec.code_onu ?? rec.codeOnu ?? rec.numero_onu ?? rec.numeroOnu ?? rec.id_onu ?? rec.id,
+  );
+  const description = asTrimmedString(
+    rec.description ?? rec.nom ?? rec.designation ?? rec.name ?? rec.libelle,
+  );
+  const danger = asTrimmedString(
+    rec.danger ?? rec.danger_id ?? rec.dangerId ?? rec.code_danger ?? rec.codeDanger ?? rec.numero_danger ?? rec.numeroDanger,
+  );
+  if (!onu && !description && !danger) return null;
+  return { onu, description, danger };
+}
+
+function toTmdArray(body: unknown): TmdEntry[] {
+  const direct = toArray<TmdEntry>(body, ["data", "tmd", "items", "entries"]);
+  return direct
+    .map((item) => normalizeTmdEntry(item))
+    .filter((item): item is TmdEntry => item !== null);
+}
+
+function normalizeTmdList(body: unknown): Promise<TmdEntry[]> {
+  return Promise.resolve(toTmdArray(body));
+}
+
+function filterTmdByQuery(entries: TmdEntry[], q: string): TmdEntry[] {
+  const needle = asTrimmedString(q)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (!needle) return entries;
+  const includes = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .includes(needle);
+  return entries.filter(
+    (r) => includes(r.onu) || includes(r.description) || includes(r.danger),
+  );
+}
+
+const CRITICITE_LEVELS = ["Courant", "Critique", "Majeur"] as const;
+
+function canonicalCriticiteLevel(key: string): string | null {
+  const found = CRITICITE_LEVELS.find(
+    (level) => level.toLowerCase() === key.trim().toLowerCase(),
+  );
+  return found ?? null;
+}
+
+function toCriterionString(value: unknown): string {
+  if (value && typeof value === "object") {
+    const rec = value as Record<string, unknown>;
+    return asTrimmedString(
+      rec.criterion ?? rec.critere ?? rec.label ?? rec.name ?? rec.value,
+    );
+  }
+  return asTrimmedString(value);
+}
+
+/**
+ * Normalise la criticité vers { Courant, Critique, Majeur }.
+ * Accepte objet { Courant|Critique|Majeur }, objet en minuscules
+ * { courant, critique, majeur }, enveloppes { data } / { criticite } /
+ * { criteres }, et liste plate [{ level, criterion }].
+ */
+export function normalizeCriticiteData(body: unknown): CriticiteData {
+  const result: CriticiteData = { Courant: [], Critique: [], Majeur: [] };
+  if (Array.isArray(body)) {
+    for (const item of body as Array<Record<string, unknown>>) {
+      if (!item || typeof item !== "object") continue;
+      const level = canonicalCriticiteLevel(
+        asTrimmedString(item.level ?? item.niveau ?? item.categorie),
+      ) as keyof CriticiteData | null;
+      const criterion = toCriterionString(item);
+      if (level && criterion && !result[level].includes(criterion)) {
+        result[level].push(criterion);
+      }
+    }
+    return result;
+  }
+  if (body && typeof body === "object") {
+    const obj = body as Record<string, unknown>;
+    const inner = obj.data ?? obj.criticite ?? obj.criteres;
+    if (inner && typeof inner === "object" && inner !== obj) {
+      return normalizeCriticiteData(inner);
+    }
+    for (const key of Object.keys(obj)) {
+      const level = canonicalCriticiteLevel(key) as keyof CriticiteData | null;
+      if (!level) continue;
+      const list = obj[key];
+      if (Array.isArray(list)) {
+        result[level] = list
+          .map((c) => toCriterionString(c))
+          .filter(Boolean);
+      }
+    }
+  }
+  return result;
+}
+
+function isEmptyCriticite(data: CriticiteData): boolean {
+  return (
+    data.Courant.length === 0 &&
+    data.Critique.length === 0 &&
+    data.Majeur.length === 0
+  );
+}
+
+async function fetchLocalJson(path: string): Promise<unknown> {
+  const base = import.meta.env.BASE_URL ?? "/";
+  const normalizedBase = base.endsWith("/") ? base : `${base}/`;
+  try {
+    const res = await fetch(`${normalizedBase}${path.replace(/^\//, "")}`);
+    if (!res.ok) return null;
+    return (await res.json()) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchLocalTmdFallback(): Promise<TmdEntry[]> {
+  const body = await fetchLocalJson("data/tmd.json");
+  return toTmdArray(body);
+}
+
+async function fetchLocalCriticiteFallback(): Promise<CriticiteData> {
+  const body = await fetchLocalJson("data/criticite.json");
+  return normalizeCriticiteData(body);
+}
+
+/**
+ * Extrait les listes TMD / Criticité d'une réponse /api/catalogs,
+ * au format { tmd: [...], criticite: {...} } ou alias minuscules.
+ */
+export function extractTmdFromCatalogs(body: unknown): TmdEntry[] {
+  if (!body || typeof body !== "object") return [];
+  const obj = body as Record<string, unknown>;
+  const candidate = obj.tmd ?? obj.Tmd ?? obj.TMD;
+  if (Array.isArray(candidate)) return toTmdArray(candidate);
+  return toTmdArray(candidate ?? []);
+}
+
+export function extractCriticiteFromCatalogs(body: unknown): CriticiteData {
+  if (!body || typeof body !== "object") {
+    return { Courant: [], Critique: [], Majeur: [] };
+  }
+  const obj = body as Record<string, unknown>;
+  const candidate = obj.criticite ?? obj.Criticite ?? obj.criteres ?? obj.data;
+  return normalizeCriticiteData(candidate);
+}
+
+async function fetchTmdFromCatalogs(): Promise<TmdEntry[]> {
+  try {
+    const body = await request<unknown>("/api/catalogs");
+    return extractTmdFromCatalogs(body);
+  } catch {
+    return [];
+  }
+}
+
+async function fetchCriticiteFromCatalogs(): Promise<CriticiteData> {
+  try {
+    const body = await request<unknown>("/api/catalogs");
+    return extractCriticiteFromCatalogs(body);
+  } catch {
+    return { Courant: [], Critique: [], Majeur: [] };
+  }
+}
+
 export const api = {
   login(identifier: string, password: string): Promise<{ user: AuthUser }> {
     return request<unknown>("/api/auth/login", {
@@ -355,15 +537,43 @@ export const api = {
   },
 
   tmd(): Promise<TmdEntry[]> {
-    return request<TmdEntry[]>("/api/tmd");
+    return request<unknown>("/api/tmd").then((body) =>
+      normalizeTmdList(body).then((entries) => {
+        if (entries.length > 0) return entries;
+        return fetchTmdFromCatalogs().then((fromCatalogs) => {
+          if (fromCatalogs.length > 0) return fromCatalogs;
+          return fetchLocalTmdFallback();
+        });
+      }),
+    );
   },
 
   tmdSearch(q: string): Promise<TmdEntry[]> {
-    return request<TmdEntry[]>("/api/tmd/search?q=" + encodeURIComponent(q));
+    return request<unknown>("/api/tmd/search?q=" + encodeURIComponent(q)).then(
+      (body) =>
+        normalizeTmdList(body).then((entries) => {
+          if (entries.length > 0) return entries;
+          return fetchTmdFromCatalogs().then((fromCatalogs) => {
+            if (fromCatalogs.length > 0) return filterTmdByQuery(fromCatalogs, q);
+            return fetchLocalTmdFallback().then((fallback) =>
+              filterTmdByQuery(fallback, q),
+            );
+          });
+        }),
+    );
   },
 
   criticite(): Promise<CriticiteData> {
-    return request<CriticiteData>("/api/criticite");
+    return request<unknown>("/api/criticite").then((body) => {
+      const normalized = normalizeCriticiteData(body);
+      if (!isEmptyCriticite(normalized)) return normalized;
+      return fetchCriticiteFromCatalogs().then((fromCatalogs) => {
+        if (!isEmptyCriticite(fromCatalogs)) return fromCatalogs;
+        return fetchLocalCriticiteFallback().then((fallback) =>
+          isEmptyCriticite(fallback) ? normalized : fallback,
+        );
+      });
+    });
   },
 
   directory(): Promise<DirectoryEntry[]> {

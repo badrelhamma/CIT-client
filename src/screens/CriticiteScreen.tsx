@@ -64,6 +64,17 @@ export function CriticiteScreen() {
     setColor(CRITICITE_COLOR_ID[level]);
   }
 
+  const critere = criticite as unknown as {
+    courant?: string[];
+    critique?: string[];
+    majeur?: string[];
+  } | null;
+  const criteresParNiveau: Record<CriticiteLevelName, string[]> = {
+    Courant: critere?.courant || criticite?.Courant || [],
+    Critique: critere?.critique || criticite?.Critique || [],
+    Majeur: critere?.majeur || criticite?.Majeur || [],
+  };
+
   return (
     <section
       aria-label="Niveau de criticité de l'événement"
@@ -85,7 +96,7 @@ export function CriticiteScreen() {
 
         {!loading && !error && criticite && (
           <>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start w-full">
               {CRITICITE_LEVELS.map((level) => (
                 <Field key={level} label={`${CRITICITE_EMOJI[level]} ${level}`}>
                   <select
@@ -102,7 +113,7 @@ export function CriticiteScreen() {
                     }`}
                   >
                     <option value=""></option>
-                    {(criticite[level] ?? []).map((c) => (
+                    {(criteresParNiveau[level] ?? []).map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
