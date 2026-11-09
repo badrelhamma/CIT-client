@@ -211,7 +211,9 @@ export function LoginScreen() {
     event.preventDefault();
     setResetError(null);
     if (!isAdmEmail(resetEmail)) {
-      setResetError(`L'adresse doit se terminer par ${ADM_EMAIL_DOMAIN}.`);
+      setResetError(
+        "Veuillez saisir une adresse professionnelle valide se terminant par @adm.co.ma",
+      );
       return;
     }
 
