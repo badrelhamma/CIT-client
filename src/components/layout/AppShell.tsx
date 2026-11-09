@@ -26,14 +26,65 @@ function screenTitle(screen: ScreenId): string {
   return "CIT";
 }
 
+const VALID_SCREENS: ScreenId[] = [
+  "evenement",
+  "historique",
+  "historiqueTous",
+  "historiqueEncours",
+  "historiqueResolus",
+  "reseau",
+  "repertoire",
+  "tmd",
+  "criticite",
+  "compteRendu",
+  "listeCr",
+  "ajouterCr",
+  "administration",
+];
+
+function storageKey(userId?: string | null): string {
+  return userId ? `cit:screen:${userId}` : "cit:screen";
+}
+
+function readStoredScreen(userId?: string | null): ScreenId | null {
+  try {
+    const raw =
+      localStorage.getItem(storageKey(userId)) ?? localStorage.getItem("cit:screen");
+    if (raw && (VALID_SCREENS as string[]).includes(raw)) return raw as ScreenId;
+  } catch {
+    /* stockage indisponible */
+  }
+  return null;
+}
+
+function writeStoredScreen(screen: ScreenId, userId?: string | null) {
+  try {
+    localStorage.setItem(storageKey(userId), screen);
+    localStorage.setItem("cit:screen", screen);
+  } catch {
+    /* stockage indisponible */
+  }
+}
+
 export function AppShell({ children }: AppShellProps) {
   const { user } = useAuth();
-  const [screen, setScreen] = useState<ScreenId>(
-    () => firstAccessibleScreen(user) ?? "administration",
-  );
+  const userId = (user as { id?: string } | null)?.id ?? null;
+  const [screen, setScreen] = useState<ScreenId>(() => {
+    const stored = readStoredScreen(userId);
+    if (stored && canAccessScreen(user, stored)) return stored;
+    return firstAccessibleScreen(user) ?? "administration";
+  });
 
   const navItems = useMemo(() => filterNavForUser(user), [user]);
   const allowed = canAccessScreen(user, screen);
+
+  useEffect(() => {
+    const stored = readStoredScreen(userId);
+    if (stored && stored !== screen && canAccessScreen(user, stored)) {
+      setScreen(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   useEffect(() => {
     if (!canAccessScreen(user, screen)) {
@@ -43,11 +94,11 @@ export function AppShell({ children }: AppShellProps) {
   }, [user, screen]);
 
   useEffect(() => {
-    document.title = screenTitle(screen);
-  }, [screen]);
+    writeStoredScreen(screen, userId);
+  }, [screen, userId]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0 });
+    document.title = screenTitle(screen);
   }, [screen]);
 
   const navigate = (s: ScreenId) => {
