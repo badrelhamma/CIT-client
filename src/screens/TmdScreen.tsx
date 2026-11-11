@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/base/Button";
 import { Card } from "@/components/base/Card";
-import { ErrorState } from "@/components/base/ErrorState";
-import { LoadingState } from "@/components/base/LoadingState";
-import { api } from "@/services/api";
+import { useTmd } from "@/hooks/useTmd";
 import { normalize } from "./repertoireUi";
 import type { TmdEntry } from "@/types";
 
@@ -14,45 +12,12 @@ interface TmdValues {
 }
 
 export function TmdScreen() {
-  const [entries, setEntries] = useState<TmdEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { entries, onuValues, descriptionValues, dangerValues } = useTmd();
 
   const [onu, setOnu] = useState("");
   const [description, setDescription] = useState("");
   const [danger, setDanger] = useState("");
   const [result, setResult] = useState<ReactNode>(null);
-
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    setError(null);
-    api
-      .tmd()
-      .then((data) => {
-        if (alive) setEntries(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {
-        if (alive) setError("Impossible de charger les données TMD.");
-      })
-      .finally(() => {
-        if (alive) setLoading(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const uniqueValues = useMemo(
-    () =>
-      (key: keyof TmdEntry) =>
-        Array.from(
-          new Set(
-            entries.map((r) => String(r[key] ?? "").trim()).filter(Boolean),
-          ),
-        ).sort((a, b) => a.localeCompare(b, "fr", { numeric: true, sensitivity: "base" })),
-    [entries],
-  );
 
   function applyEntry(entry: TmdEntry) {
     setOnu(entry.onu ?? "");
@@ -156,12 +121,7 @@ export function TmdScreen() {
       </div>
 
       <Card className="border-t-4 border-t-orange">
-        {loading && <LoadingState label="Chargement des données TMD..." />}
-        {!loading && error && <ErrorState message={error} />}
-
-        {!loading && !error && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start w-full">
               <div className="flex flex-col gap-1.5 w-full">
                 <label htmlFor="tmd-onu" className="text-sm font-medium text-slate-300 min-h-[2.5rem] leading-snug">
                   N° ONU
@@ -207,17 +167,17 @@ export function TmdScreen() {
             </div>
 
             <datalist id="tmdOnuList">
-              {uniqueValues("onu").map((v) => (
+              {onuValues.map((v) => (
                 <option key={v} value={v} />
               ))}
             </datalist>
             <datalist id="tmdDescriptionList">
-              {uniqueValues("description").map((v) => (
+              {descriptionValues.map((v) => (
                 <option key={v} value={v} />
               ))}
             </datalist>
             <datalist id="tmdDangerList">
-              {uniqueValues("danger").map((v) => (
+              {dangerValues.map((v) => (
                 <option key={v} value={v} />
               ))}
             </datalist>
@@ -233,8 +193,6 @@ export function TmdScreen() {
                 {result}
               </div>
             )}
-          </>
-        )}
       </Card>
     </section>
   );

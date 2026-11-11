@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/base/Badge";
 import { Card } from "@/components/base/Card";
-import { ErrorState } from "@/components/base/ErrorState";
-import { LoadingState } from "@/components/base/LoadingState";
-import { useData } from "@/contexts/DataContext";
+import { useHighways } from "@/hooks/useHighways";
 import { hasCoords } from "@/services/geo";
 import type { Highway } from "@/types";
 
@@ -27,39 +25,15 @@ function formatKm(km: number): string {
 }
 
 export function NetworkScreen() {
-  const {
-    highways,
-    catalogs,
-    loadingHighways,
-    loadingCatalogs,
-    errorHighways,
-    errorCatalogs,
-  } = useData();
+  const { highways, stats, pendingAxes } = useHighways();
   const [expanded, setExpanded] = useState<string | null>(null);
-
-  const stats = catalogs?.networkStats?.data;
-  const pending = catalogs?.pendingAxes?.data ?? [];
-
-  if (loadingHighways || loadingCatalogs) {
-    return (
-      <section aria-label="Réseau">
-        <LoadingState label="Chargement du réseau..." />
-      </section>
-    );
-  }
-  if (errorHighways || errorCatalogs) {
-    return (
-      <section aria-label="Réseau">
-        <ErrorState message={errorHighways ?? errorCatalogs ?? "Réseau indisponible."} />
-      </section>
-    );
-  }
+  const pending = pendingAxes;
 
   const statCards: { label: string; value: string | number }[] = [
-    { label: "Axes", value: stats?.highways ?? highways.length },
-    { label: "Longueur totale", value: stats ? `${formatKm(stats.totalKm)} km` : "–" },
-    { label: "Repères", value: stats?.landmarks ?? 0 },
-    { label: "Axes en attente", value: stats?.pending ?? pending.length },
+    { label: "Axes", value: stats.highways },
+    { label: "Longueur totale", value: `${formatKm(stats.totalKm)} km` },
+    { label: "Repères", value: stats.landmarks },
+    { label: "Axes en attente", value: stats.pending },
   ];
 
   return (

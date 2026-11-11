@@ -1,0 +1,475 @@
+{
+  "lanes": [
+    {
+      "id": "bau",
+      "label": "BAU"
+    },
+    {
+      "id": "bcd",
+      "label": "BCD"
+    },
+    {
+      "id": "tpc",
+      "label": "TPC"
+    },
+    {
+      "id": "voie-lente",
+      "label": "Voie lente"
+    },
+    {
+      "id": "voie-mediane",
+      "label": "Voie médiane"
+    },
+    {
+      "id": "voie-rapide",
+      "label": "Voie rapide"
+    },
+    {
+      "id": "echangeur",
+      "label": "Échangeur"
+    },
+    {
+      "id": "voie-peage",
+      "label": "Voie de péage"
+    },
+    {
+      "id": "plein-chaussee",
+      "label": "Plein de chaussée"
+    }
+  ],
+  "trafficImpacts": [
+    {
+      "id": "ralentissement",
+      "label": "Ralentissement"
+    },
+    {
+      "id": "arret",
+      "label": "Arrêt"
+    },
+    {
+      "id": "basculement",
+      "label": "Basculement"
+    },
+    {
+      "id": "deviation",
+      "label": "Déviation"
+    },
+    {
+      "id": "bouchon",
+      "label": "Bouchon"
+    },
+    {
+      "id": "voie-peage-condamnee",
+      "label": "Voie de péage condamnée"
+    }
+  ],
+  "damageTypes": [
+    {
+      "id": "materiel",
+      "label": "Matériels"
+    },
+    {
+      "id": "infra",
+      "label": "Infrastructures"
+    },
+    {
+      "id": "corporel",
+      "label": "Corporels"
+    }
+  ],
+  "actionActors": [
+    {
+      "id": "patrouilleur",
+      "label": "Patrouilleur"
+    },
+    {
+      "id": "gendarmerie",
+      "label": "Gendarmerie"
+    },
+    {
+      "id": "ambulance",
+      "label": "Ambulance"
+    },
+    {
+      "id": "depannage",
+      "label": "Dépannage"
+    },
+    {
+      "id": "pompiers",
+      "label": "Pompiers"
+    }
+  ],
+  "actionStatuses": [
+    {
+      "id": "sur-place",
+      "label": "sur place"
+    },
+    {
+      "id": "en-route",
+      "label": "en route"
+    }
+  ],
+  "vehicleTypes": [
+    "VL",
+    "VUL",
+    "PL",
+    "PL TMD",
+    "Moto",
+    "Autocar",
+    "Taxi"
+  ],
+  "maxVehicleChoices": 3,
+  "countValues": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "bilanTypeTemplates": [
+    {
+      "id": "collision",
+      "template": "Collision entre nbr ?",
+      "hasVehicle": true,
+      "hasCount": true
+    },
+    {
+      "id": "derape-glissiere",
+      "template": "? a dérapé en heurtant la glissière",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "derape-dba",
+      "template": "? a dérapé en heurtant DBA",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "derape-tpc",
+      "template": "? dérapé sur TPC",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "derape-bcd",
+      "template": "? dérapé sur BCD",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "percute-pieton",
+      "template": "? a percuté un piéton",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "percute-pneu",
+      "template": "? a percuté un pneu",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "feu-tpc",
+      "template": "Feu sur TPC",
+      "hasVehicle": false,
+      "hasCount": false
+    },
+    {
+      "id": "feu-bcd",
+      "template": "Feu sur BCD",
+      "hasVehicle": false,
+      "hasCount": false
+    },
+    {
+      "id": "carambolage",
+      "template": "Carambolage entre nbr ?",
+      "hasVehicle": true,
+      "hasCount": true
+    },
+    {
+      "id": "percute-chien",
+      "template": "? a percuté un chien",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "renverse",
+      "template": "? s'est renversé",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "sens-inverse",
+      "template": "? a traversé vers le sens inverse",
+      "hasVehicle": true,
+      "hasCount": false
+    },
+    {
+      "id": "autres",
+      "template": "Autres",
+      "hasVehicle": false,
+      "hasCount": false,
+      "isCustom": true
+    }
+  ],
+  "eventColors": [
+    {
+      "id": "jaune",
+      "label": "Jaune",
+      "emoji": "🟡",
+      "hex": "#ffc400",
+      "soft": "#fff8e0",
+      "deep": "#8a6a00"
+    },
+    {
+      "id": "orange",
+      "label": "Orange",
+      "emoji": "🟠",
+      "hex": "#ff7a1a",
+      "soft": "#ffeedd",
+      "deep": "#9a4300"
+    },
+    {
+      "id": "rouge",
+      "label": "Rouge",
+      "emoji": "🔴",
+      "hex": "#e11d2e",
+      "soft": "#ffe3e6",
+      "deep": "#8f0f1b"
+    }
+  ],
+  "requestTypes": [
+    {
+      "id": "accident-vl-seul",
+      "label": "Accident d'un seul véhicule léger"
+    },
+    {
+      "id": "accident-vl-multiples",
+      "label": "Accident entre plusieurs véhicules légers"
+    },
+    {
+      "id": "accident-vl-pl",
+      "label": "Accident entre véhicule léger et poids lourd"
+    },
+    {
+      "id": "accident-pl-seul",
+      "label": "Accident d'un seul poids lourd"
+    },
+    {
+      "id": "accident-pl-multiples",
+      "label": "Accident entre poids lourds"
+    },
+    {
+      "id": "accident-autocar",
+      "label": "Accident impliquant un autocar"
+    },
+    {
+      "id": "accident-tmd",
+      "label": "Accident d'un véhicule transportant des matières dangereuses"
+    },
+    {
+      "id": "accident-moto",
+      "label": "Accident impliquant une moto"
+    },
+    {
+      "id": "accident-pieton",
+      "label": "Accident impliquant un piéton"
+    },
+    {
+      "id": "accident-animal",
+      "label": "Accident impliquant un animal"
+    },
+    {
+      "id": "accident-multi-categories",
+      "label": "Accident impliquant plusieurs catégories de véhicules"
+    },
+    {
+      "id": "carambolage",
+      "label": "Carambolage"
+    },
+    {
+      "id": "panne-vl",
+      "label": "Panne véhicule léger"
+    },
+    {
+      "id": "panne-pl",
+      "label": "Panne poids lourd"
+    },
+    {
+      "id": "panne-autocar",
+      "label": "Panne autocar"
+    },
+    {
+      "id": "panne-tmd",
+      "label": "Panne véhicule TMD"
+    },
+    {
+      "id": "obstacle-chaussee",
+      "label": "Obstacle sur chaussée"
+    },
+    {
+      "id": "chargement-renverse",
+      "label": "Chargement renversé sur chaussée"
+    },
+    {
+      "id": "feu-tpc",
+      "label": "Feu sur TPC"
+    },
+    {
+      "id": "feu-bcd",
+      "label": "Feu sur BCD"
+    },
+    {
+      "id": "incendie-vl",
+      "label": "Incendie véhicule léger"
+    },
+    {
+      "id": "incendie-pl",
+      "label": "Incendie poids lourd"
+    },
+    {
+      "id": "incendie-vegetation",
+      "label": "Incendie végétation / accotement"
+    },
+    {
+      "id": "pieton-autoroute",
+      "label": "Piéton sur autoroute"
+    },
+    {
+      "id": "animal-autoroute",
+      "label": "Animal sur autoroute"
+    },
+    {
+      "id": "travaux",
+      "label": "Travaux"
+    },
+    {
+      "id": "bouchon",
+      "label": "Bouchon"
+    },
+    {
+      "id": "ralentissement",
+      "label": "Ralentissement"
+    },
+    {
+      "id": "circulation-arretee",
+      "label": "Circulation arrêtée"
+    },
+    {
+      "id": "fermeture-voie",
+      "label": "Fermeture de voie"
+    },
+    {
+      "id": "fermeture-sens",
+      "label": "Fermeture du sens"
+    },
+    {
+      "id": "inondation",
+      "label": "Inondation / eau sur chaussée"
+    },
+    {
+      "id": "glissement-terrain",
+      "label": "Glissement de terrain"
+    },
+    {
+      "id": "degradation-ouvrage",
+      "label": "Dégradation d'ouvrage"
+    },
+    {
+      "id": "autre",
+      "label": "Autre événement"
+    }
+  ],
+  "detectionSources": [
+    {
+      "id": "appel-5050",
+      "label": "usager 5050"
+    },
+    {
+      "id": "camera",
+      "label": "Caméra"
+    },
+    {
+      "id": "patrouille",
+      "label": "Patrouille"
+    },
+    {
+      "id": "depannage",
+      "label": "Depannage"
+    },
+    {
+      "id": "adm",
+      "label": "Usage ADM"
+    },
+    {
+      "id": "gare",
+      "label": "Gare de péage"
+    },
+    {
+      "id": "gendarmerie",
+      "label": "Gendarmerie"
+    },
+    {
+      "id": "radio-tetra",
+      "label": "Radio Tetra"
+    }
+  ],
+  "statuses": [
+    {
+      "id": "confirmer",
+      "label": "En cours de confirmation"
+    },
+    {
+      "id": "confirme",
+      "label": "Confirmé"
+    },
+    {
+      "id": "intervention",
+      "label": "Intervention en cours"
+    },
+    {
+      "id": "leve",
+      "label": "Événement levé"
+    },
+    {
+      "id": "cloture",
+      "label": "Clôture"
+    }
+  ],
+  "landmarkTypeMeta": {
+    "bifurcation": {
+      "label": "Bifurcation"
+    },
+    "diffuseur": {
+      "label": "Diffuseur"
+    },
+    "aire": {
+      "label": "Aire de services"
+    },
+    "gare": {
+      "label": "Gare / BPV"
+    }
+  },
+  "pendingAxes": [
+    {
+      "id": "A2",
+      "name": "Nadour – Guersif",
+      "dirs": [
+        "Vers Nadour",
+        "Vers Guersif"
+      ]
+    }
+  ],
+  "networkStats": {
+    "highways": 13,
+    "pending": 1,
+    "totalKm": 1785.5,
+    "landmarks": 154
+  }
+}

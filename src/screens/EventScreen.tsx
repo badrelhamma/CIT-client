@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/base/Button";
 import { Card } from "@/components/base/Card";
-import { ErrorState } from "@/components/base/ErrorState";
 import { Field } from "@/components/base/Field";
-import { LoadingState } from "@/components/base/LoadingState";
 import { MessageText } from "@/components/base/MessageText";
 import { PkSign } from "@/components/base/PkSign";
 import { BilanOptionsFields } from "@/components/bilan/BilanOptionsFields";
@@ -68,8 +66,7 @@ function allowedHighwayIds(state: EventStateId): string[] {
 }
 
 export function EventScreen() {
-  const { highways, catalogs, loadingCatalogs, errorCatalogs, refreshHistory } =
-    useData();
+  const { highways, catalogs, refreshHistory } = useData();
   const { notify } = useToast();
 
   const bilanOpts = useBilanOptions(catalogs);
@@ -764,17 +761,8 @@ export function EventScreen() {
           <h3 className="mb-4 text-base font-bold text-adm-700">
             Informations événement
           </h3>
-          {!catalogs ? (
-            loadingCatalogs ? (
-              <LoadingState label="Chargement des référentiels..." />
-            ) : (
-              <ErrorState
-                message={errorCatalogs ?? "Référentiels indisponibles."}
-              />
-            )
-          ) : (
-            <div className="grid gap-5">
-              <Field label="Couleur">
+          <div className="grid gap-5">
+            <Field label="Couleur">
                 <ColorSelector
                   colors={catalogs.eventColors?.data ?? []}
                   value={color}
@@ -814,7 +802,6 @@ export function EventScreen() {
                 </Field>
               )}
             </div>
-          )}
         </Card>
       )}
 

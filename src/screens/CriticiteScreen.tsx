@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/base/Card";
-import { ErrorState } from "@/components/base/ErrorState";
 import { Field } from "@/components/base/Field";
-import { LoadingState } from "@/components/base/LoadingState";
 import { useEvent } from "@/contexts/EventContext";
-import { api } from "@/services/api";
+import { useCriticite } from "@/hooks/useCriticite";
 import { selectCls } from "./repertoireUi";
-import type { CriticiteData, CriticiteLevelName } from "@/types";
+import type { CriticiteLevelName } from "@/types";
 
 const CRITICITE_EMOJI: Record<CriticiteLevelName, string> = {
   Courant: "🟡",
@@ -24,35 +22,13 @@ const CRITICITE_COLOR_ID: Record<CriticiteLevelName, "jaune" | "orange" | "rouge
 const CRITICITE_LEVELS: CriticiteLevelName[] = ["Courant", "Critique", "Majeur"];
 
 export function CriticiteScreen() {
-  const [criticite, setCriticite] = useState<CriticiteData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { criticite } = useCriticite();
   const [selected, setSelected] = useState<{
     level: CriticiteLevelName;
     criterion: string;
   } | null>(null);
 
   const { setColor } = useEvent();
-
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    setError(null);
-    api
-      .criticite()
-      .then((data) => {
-        if (alive) setCriticite(data);
-      })
-      .catch(() => {
-        if (alive) setError("Impossible de charger la criticité.");
-      })
-      .finally(() => {
-        if (alive) setLoading(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   function applySelection(level: CriticiteLevelName, criterion: string) {
     if (!criterion) {
@@ -64,15 +40,10 @@ export function CriticiteScreen() {
     setColor(CRITICITE_COLOR_ID[level]);
   }
 
-  const critere = criticite as unknown as {
-    courant?: string[];
-    critique?: string[];
-    majeur?: string[];
-  } | null;
   const criteresParNiveau: Record<CriticiteLevelName, string[]> = {
-    Courant: critere?.courant || criticite?.Courant || [],
-    Critique: critere?.critique || criticite?.Critique || [],
-    Majeur: critere?.majeur || criticite?.Majeur || [],
+    Courant: criticite.Courant,
+    Critique: criticite.Critique,
+    Majeur: criticite.Majeur,
   };
 
   return (
@@ -91,12 +62,7 @@ export function CriticiteScreen() {
       </div>
 
       <Card className="border-t-4 border-t-orange">
-        {loading && <LoadingState label="Chargement de la criticité..." />}
-        {!loading && error && <ErrorState message={error} />}
-
-        {!loading && !error && criticite && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start w-full">
               {CRITICITE_LEVELS.map((level) => (
                 <Field key={level} label={`${CRITICITE_EMOJI[level]} ${level}`}>
                   <select
@@ -137,8 +103,6 @@ export function CriticiteScreen() {
                 </p>
               )}
             </div>
-          </>
-        )}
       </Card>
     </section>
   );

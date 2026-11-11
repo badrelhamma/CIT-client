@@ -1,5 +1,4 @@
 import { useData } from "@/contexts/DataContext";
-import { LoadingState } from "@/components/base/LoadingState";
 import { ErrorState } from "@/components/base/ErrorState";
 import { SearchableSelect } from "@/components/base/SearchableSelect";
 
@@ -15,15 +14,13 @@ export function HighwaySelector({
   onChange,
   allowedIds,
 }: HighwaySelectorProps) {
-  const { highways, loadingHighways, errorHighways } = useData();
+  const { highways } = useData();
 
-  if (loadingHighways) return <LoadingState label="Chargement des axes..." />;
-
-  if (errorHighways || (highways ?? []).length === 0) {
-    return <ErrorState message="Impossible de charger les axes." />;
+  if (highways.length === 0) {
+    return <ErrorState message="Aucun axe disponible." />;
   }
 
-  const safeHighways = highways ?? [];
+  const safeHighways = highways;
   const visible =
     allowedIds && allowedIds.length > 0
       ? allowedIds

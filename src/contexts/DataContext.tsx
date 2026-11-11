@@ -8,20 +8,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, normalizeCatalogs } from "@/services/api";
+import { api } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { CATALOGS_DATA, HIGHWAYS_DATA } from "@/services/localData";
 import type { Catalogs, Highway, HistoryEvent } from "@/types";
 
 interface DataContextValue {
   highways: Highway[];
-  catalogs: Catalogs | null;
+  catalogs: Catalogs;
   history: HistoryEvent[];
   healthOk: boolean | null;
-  loadingHighways: boolean;
-  loadingCatalogs: boolean;
   loadingHistory: boolean;
-  errorHighways: string | null;
-  errorCatalogs: string | null;
   errorHistory: string | null;
   refreshHistory: () => Promise<void>;
   checkHealth: () => Promise<void>;
@@ -33,17 +30,9 @@ const DataContext = createContext<DataContextValue | null>(null);
 export function DataProvider({ children }: { children: ReactNode }) {
   const { hasPermission } = useAuth();
   const canViewHistory = hasPermission("page:historique");
-  const [highways, setHighways] = useState<Highway[]>([]);
-  const [catalogs, setCatalogs] = useState<Catalogs | null>(null);
   const [history, setHistory] = useState<HistoryEvent[]>([]);
   const [healthOk, setHealthOk] = useState<boolean | null>(null);
-
-  const [loadingHighways, setLoadingHighways] = useState(true);
-  const [loadingCatalogs, setLoadingCatalogs] = useState(true);
   const [loadingHistory, setLoadingHistory] = useState(true);
-
-  const [errorHighways, setErrorHighways] = useState<string | null>(null);
-  const [errorCatalogs, setErrorCatalogs] = useState<string | null>(null);
   const [errorHistory, setErrorHistory] = useState<string | null>(null);
 
   const mounted = useRef(true);
@@ -92,41 +81,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [checkHealth]);
 
   useEffect(() => {
-    setLoadingHighways(true);
-    setErrorHighways(null);
-    api
-      .highways()
-      .then((result) => {
-        if (mounted.current) {
-          setHighways(Array.isArray(result) ? result : []);
-        }
-      })
-      .catch(() => {
-        if (mounted.current) setErrorHighways("Impossible de charger les axes.");
-      })
-      .finally(() => {
-        if (mounted.current) setLoadingHighways(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    setLoadingCatalogs(true);
-    setErrorCatalogs(null);
-    api
-      .catalogs()
-      .then((result) => {
-        if (mounted.current) setCatalogs(normalizeCatalogs(result));
-      })
-      .catch(() => {
-        if (mounted.current)
-          setErrorCatalogs("Impossible de charger les référentiels.");
-      })
-      .finally(() => {
-        if (mounted.current) setLoadingCatalogs(false);
-      });
-  }, []);
-
-  useEffect(() => {
     if (canViewHistory) {
       void refreshHistory();
     } else {
@@ -137,36 +91,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [canViewHistory, refreshHistory]);
 
   const highwayById = useCallback(
-    (id: string) => highways.find((h) => h.id === id),
-    [highways],
+    (id: string) => HIGHWAYS_DATA.find((h) => h.id === id),
+    [],
   );
 
   const value = useMemo<DataContextValue>(
     () => ({
-      highways,
-      catalogs,
+      highways: HIGHWAYS_DATA,
+      catalogs: CATALOGS_DATA,
       history,
       healthOk,
-      loadingHighways,
-      loadingCatalogs,
       loadingHistory,
-      errorHighways,
-      errorCatalogs,
       errorHistory,
       refreshHistory,
       checkHealth,
       highwayById,
     }),
     [
-      highways,
-      catalogs,
       history,
       healthOk,
-      loadingHighways,
-      loadingCatalogs,
       loadingHistory,
-      errorHighways,
-      errorCatalogs,
       errorHistory,
       refreshHistory,
       checkHealth,
